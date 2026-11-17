@@ -1,0 +1,155 @@
+import { useEffect, useRef, useState } from "react";
+import { Brand } from "./Brand";
+import { Icon } from "./Icon";
+
+type NavKey = "product" | "solutions" | "company" | null;
+
+const productLinks = [
+  { href: "#how-it-works", label: "How it works" },
+  { href: "#platforms", label: "Platforms" },
+];
+
+const solutionsLinks = [
+  { href: "#audiences", label: "Who it's for" },
+  { href: "#security", label: "Security & Privacy" },
+];
+
+const companyLinks = [
+  { href: "/about.html", label: "About" },
+  { href: "/faq.html", label: "FAQ" },
+  { href: "/contact.html", label: "Contact" },
+];
+
+export function SiteHeader() {
+  const [openMenu, setOpenMenu] = useState<NavKey>(null);
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    function onDocumentClick(event: MouseEvent) {
+      const target = event.target as Node;
+      if (headerRef.current?.contains(target)) return;
+      setOpenMenu(null);
+    }
+    document.addEventListener("click", onDocumentClick);
+    return () => document.removeEventListener("click", onDocumentClick);
+  }, []);
+
+  function toggleMenu(key: NavKey) {
+    setOpenMenu((current) => (current === key ? null : key));
+  }
+
+  return (
+    <header className="site-header" ref={headerRef}>
+      <div className="container site-header__inner">
+        <Brand className="brand site-header__brand" />
+
+        <button
+          className="site-header__toggle"
+          type="button"
+          popoverTarget="site-menu"
+          aria-label="Open menu"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+
+        <nav className="site-header__nav" id="site-menu" popover="" aria-label="Primary">
+          <ul className="site-header__links" role="list">
+            <li>
+              <a className="site-header__link" href="/" aria-current="page">
+                Home
+              </a>
+            </li>
+
+            <li className={`nav-item${openMenu === "product" ? " is-open" : ""}`}>
+              <button
+                className="site-header__link nav-item__trigger"
+                type="button"
+                aria-expanded={openMenu === "product"}
+                aria-controls="nav-product"
+                aria-haspopup="true"
+                onClick={() => toggleMenu("product")}
+              >
+                Product
+                <Icon id="i-chevron-down" className="icon site-header__chevron" />
+              </button>
+              <ul className="nav-dropdown" id="nav-product" role="list">
+                {productLinks.map((link) => (
+                  <li key={link.href}>
+                    <a className="nav-dropdown__link" href={link.href}>
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+
+            <li className={`nav-item${openMenu === "solutions" ? " is-open" : ""}`}>
+              <button
+                className="site-header__link nav-item__trigger"
+                type="button"
+                aria-expanded={openMenu === "solutions"}
+                aria-controls="nav-solutions"
+                aria-haspopup="true"
+                onClick={() => toggleMenu("solutions")}
+              >
+                Solutions
+                <Icon id="i-chevron-down" className="icon site-header__chevron" />
+              </button>
+              <ul className="nav-dropdown" id="nav-solutions" role="list">
+                {solutionsLinks.map((link) => (
+                  <li key={link.href}>
+                    <a className="nav-dropdown__link" href={link.href}>
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+
+            <li>
+              <a className="site-header__link" href="/pricing.html">
+                Pricing
+              </a>
+            </li>
+
+            <li className={`nav-item${openMenu === "company" ? " is-open" : ""}`}>
+              <button
+                className="site-header__link nav-item__trigger"
+                type="button"
+                aria-expanded={openMenu === "company"}
+                aria-controls="nav-company"
+                aria-haspopup="true"
+                onClick={() => toggleMenu("company")}
+              >
+                Company
+                <Icon id="i-chevron-down" className="icon site-header__chevron" />
+              </button>
+              <ul className="nav-dropdown" id="nav-company" role="list">
+                {companyLinks.map((link) => (
+                  <li key={link.href}>
+                    <a className="nav-dropdown__link" href={link.href}>
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          </ul>
+          <a className="btn btn--ghost site-header__signin" href="#">
+            Sign In
+          </a>
+        </nav>
+      </div>
+    </header>
+  );
+}
