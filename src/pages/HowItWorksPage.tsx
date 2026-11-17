@@ -134,7 +134,7 @@ export function HowItWorksPage() {
             </p>
           </div>
           <div className="page-cta__actions">
-            <Link className="btn btn--primary" to="/#pricing">
+            <Link className="btn btn--primary" to="/pricing">
               View pricing
               <Icon id="i-arrow-right" />
             </Link>
