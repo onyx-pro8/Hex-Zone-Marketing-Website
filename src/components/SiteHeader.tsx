@@ -1,23 +1,24 @@
 import { useEffect, useRef, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 
 type NavKey = "product" | "solutions" | "company" | null;
 
 const productLinks = [
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#platforms", label: "Platforms" },
+  { to: "/how-it-works", label: "How it works" },
+  { to: "/smart-home", label: "Smart home" },
 ];
 
 const solutionsLinks = [
-  { href: "#audiences", label: "Who it's for" },
-  { href: "#security", label: "Security & Privacy" },
+  { to: "/#audiences", label: "Who it's for" },
+  { to: "/#security", label: "Security & Privacy" },
 ];
 
 const companyLinks = [
-  { href: "/about.html", label: "About" },
-  { href: "/faq.html", label: "FAQ" },
-  { href: "/contact.html", label: "Contact" },
+  { to: "/#", label: "About" },
+  { to: "/#", label: "FAQ" },
+  { to: "/#", label: "Contact" },
 ];
 
 export function SiteHeader() {
@@ -36,6 +37,10 @@ export function SiteHeader() {
 
   function toggleMenu(key: NavKey) {
     setOpenMenu((current) => (current === key ? null : key));
+  }
+
+  function closeMenu() {
+    setOpenMenu(null);
   }
 
   return (
@@ -65,9 +70,16 @@ export function SiteHeader() {
         <nav className="site-header__nav" id="site-menu" popover="" aria-label="Primary">
           <ul className="site-header__links" role="list">
             <li>
-              <a className="site-header__link" href="/" aria-current="page">
+              <NavLink
+                className={({ isActive }) =>
+                  `site-header__link${isActive ? " is-active" : ""}`
+                }
+                to="/"
+                end
+                onClick={closeMenu}
+              >
                 Home
-              </a>
+              </NavLink>
             </li>
 
             <li className={`nav-item${openMenu === "product" ? " is-open" : ""}`}>
@@ -84,10 +96,10 @@ export function SiteHeader() {
               </button>
               <ul className="nav-dropdown" id="nav-product" role="list">
                 {productLinks.map((link) => (
-                  <li key={link.href}>
-                    <a className="nav-dropdown__link" href={link.href}>
+                  <li key={link.to}>
+                    <Link className="nav-dropdown__link" to={link.to} onClick={closeMenu}>
                       {link.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -107,19 +119,19 @@ export function SiteHeader() {
               </button>
               <ul className="nav-dropdown" id="nav-solutions" role="list">
                 {solutionsLinks.map((link) => (
-                  <li key={link.href}>
-                    <a className="nav-dropdown__link" href={link.href}>
+                  <li key={link.to + link.label}>
+                    <Link className="nav-dropdown__link" to={link.to} onClick={closeMenu}>
                       {link.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
             </li>
 
             <li>
-              <a className="site-header__link" href="/pricing.html">
+              <Link className="site-header__link" to="/#pricing" onClick={closeMenu}>
                 Pricing
-              </a>
+              </Link>
             </li>
 
             <li className={`nav-item${openMenu === "company" ? " is-open" : ""}`}>
@@ -136,10 +148,10 @@ export function SiteHeader() {
               </button>
               <ul className="nav-dropdown" id="nav-company" role="list">
                 {companyLinks.map((link) => (
-                  <li key={link.href}>
-                    <a className="nav-dropdown__link" href={link.href}>
+                  <li key={link.label}>
+                    <Link className="nav-dropdown__link" to={link.to} onClick={closeMenu}>
                       {link.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

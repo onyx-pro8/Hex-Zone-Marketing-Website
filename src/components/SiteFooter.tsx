@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 
@@ -5,28 +6,28 @@ const footerCols = [
   {
     heading: "Product",
     links: [
-      { href: "/", label: "Home" },
-      { href: "/how-it-works.html", label: "How it works" },
-      { href: "/smart-home.html", label: "Smart home" },
+      { to: "/", label: "Home" },
+      { to: "/how-it-works", label: "How it works" },
+      { to: "/smart-home", label: "Smart home" },
     ],
   },
   {
     heading: "Solutions",
     links: [
-      { href: "/communities.html", label: "Communities" },
-      { href: "/security-privacy.html", label: "Security & Privacy" },
+      { to: "/#audiences", label: "Who it's for" },
+      { to: "/#security", label: "Security & Privacy" },
     ],
   },
   {
     heading: "Pricing",
-    links: [{ href: "/pricing.html", label: "Pricing" }],
+    links: [{ to: "/#pricing", label: "Pricing" }],
   },
   {
     heading: "Company",
     links: [
-      { href: "/about.html", label: "About" },
-      { href: "/faq.html", label: "FAQ" },
-      { href: "/contact.html", label: "Contact" },
+      { to: "/#", label: "About" },
+      { to: "/#", label: "FAQ" },
+      { to: "/#", label: "Contact" },
     ],
   },
 ];
@@ -50,8 +51,8 @@ export function SiteFooter() {
                 <p className="site-footer__heading">{col.heading}</p>
                 <ul className="site-footer__links" role="list">
                   {col.links.map((link) => (
-                    <li key={link.href + link.label}>
-                      <a href={link.href}>{link.label}</a>
+                    <li key={link.to + link.label}>
+                      <Link to={link.to}>{link.label}</Link>
                     </li>
                   ))}
                 </ul>
