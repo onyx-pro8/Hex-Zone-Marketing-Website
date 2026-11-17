@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Icon } from "./Icon";
 
 export function CtaBanner() {
@@ -61,10 +62,10 @@ export function CtaBanner() {
             </h2>
           </div>
 
-          <a className="btn btn--primary cta__btn" href="/communities.html">
-            Community
+          <Link className="btn btn--primary cta__btn" to="/pricing">
+            Get started
             <Icon id="i-arrow-right" />
-          </a>
+          </Link>
         </div>
       </div>
     </section>
