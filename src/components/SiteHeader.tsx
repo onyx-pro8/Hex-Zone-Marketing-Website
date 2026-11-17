@@ -11,14 +11,13 @@ const productLinks = [
 ];
 
 const solutionsLinks = [
-  { to: "/#audiences", label: "Who it's for" },
-  { to: "/#security", label: "Security & Privacy" },
+  { to: "/security-privacy", label: "Security & Privacy" },
 ];
 
 const companyLinks = [
-  { to: "/#", label: "About" },
-  { to: "/#", label: "FAQ" },
-  { to: "/#", label: "Contact" },
+  { to: "/about", label: "About" },
+  { to: "/faq", label: "FAQ" },
+  { to: "/contact", label: "Contact" },
 ];
 
 export function SiteHeader() {

@@ -13,10 +13,7 @@ const footerCols = [
   },
   {
     heading: "Solutions",
-    links: [
-      { to: "/#audiences", label: "Who it's for" },
-      { to: "/#security", label: "Security & Privacy" },
-    ],
+    links: [{ to: "/security-privacy", label: "Security & Privacy" }],
   },
   {
     heading: "Pricing",
@@ -25,9 +22,9 @@ const footerCols = [
   {
     heading: "Company",
     links: [
-      { to: "/#", label: "About" },
-      { to: "/#", label: "FAQ" },
-      { to: "/#", label: "Contact" },
+      { to: "/about", label: "About" },
+      { to: "/faq", label: "FAQ" },
+      { to: "/contact", label: "Contact" },
     ],
   },
 ];
