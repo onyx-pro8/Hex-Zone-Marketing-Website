@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Icon } from "./Icon";
 
 type Plan = {
@@ -193,6 +194,13 @@ export function Pricing() {
             </li>
           ))}
         </ul>
+
+        <p className="pricing__more">
+          <Link className="link-arrow" to="/pricing">
+            See all subscription plans
+            <Icon id="i-arrow-right" />
+          </Link>
+        </p>
       </div>
     </section>
   );

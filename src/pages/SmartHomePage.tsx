@@ -191,7 +191,7 @@ export function SmartHomePage() {
               How it works
               <Icon id="i-arrow-right" />
             </Link>
-            <Link className="btn btn--outline" to="/#pricing">
+            <Link className="btn btn--outline" to="/pricing">
               View pricing
             </Link>
           </div>

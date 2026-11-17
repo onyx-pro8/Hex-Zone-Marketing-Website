@@ -20,7 +20,7 @@ const footerCols = [
   },
   {
     heading: "Pricing",
-    links: [{ to: "/#pricing", label: "Pricing" }],
+    links: [{ to: "/pricing", label: "Pricing" }],
   },
   {
     heading: "Company",

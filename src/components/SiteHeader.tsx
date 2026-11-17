@@ -129,9 +129,15 @@ export function SiteHeader() {
             </li>
 
             <li>
-              <Link className="site-header__link" to="/#pricing" onClick={closeMenu}>
+              <NavLink
+                className={({ isActive }) =>
+                  `site-header__link${isActive ? " is-active" : ""}`
+                }
+                to="/pricing"
+                onClick={closeMenu}
+              >
                 Pricing
-              </Link>
+              </NavLink>
             </li>
 
             <li className={`nav-item${openMenu === "company" ? " is-open" : ""}`}>
