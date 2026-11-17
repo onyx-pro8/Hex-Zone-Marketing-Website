@@ -9,7 +9,7 @@ const platforms = [
   },
   {
     title: "API & SDK",
-    text: "Integrate Safe Zone Patrol into your own systems with REST endpoints and mobile SDKs.",
+    text: "Integrate Safe Zone Patrol into your own systems with REST endpoints and API docs.",
   },
 ];
 

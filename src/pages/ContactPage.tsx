@@ -7,7 +7,7 @@ const topics = [
   "Sales / pricing",
   "Product support",
   "Partnership",
-  "Enterprise inquiry",
+  "Custom plan inquiry",
 ];
 
 const channels = [

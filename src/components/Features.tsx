@@ -104,7 +104,7 @@ const cards: FeatureCard[] = [
     height: 260,
     alt: "Developer at a desk with live map dashboards on screen",
     title: "Developer Ready",
-    text: "Integrate with our REST API and mobile SDK.",
+    text: "Integrate with our REST API and documented endpoints.",
     badge: (
       <svg
         className="feature-card__icon"

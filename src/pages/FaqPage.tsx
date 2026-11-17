@@ -31,8 +31,8 @@ const groups: FaqGroup[] = [
         a: "Yes. Hub capacity depends on your plan. The Smart home page covers setup guidance and documentation placeholders for supported workflows.",
       },
       {
-        q: "Is there an API or SDK?",
-        a: "Paid plans include REST API and mobile SDK access. Monthly call limits scale by subscription tier so usage stays predictable as you grow.",
+        q: "Is there an API?",
+        a: "Paid plans include REST API access with monthly call limits that scale by subscription tier. API documentation is available in the web and mobile apps.",
       },
     ],
   },
@@ -42,19 +42,19 @@ const groups: FaqGroup[] = [
     items: [
       {
         q: "What is the difference between Family and Organization plans?",
-        a: "Family is designed for household sharing with a smaller member cap. Organization plans add admin tooling, higher limits, analytics, and tiered capacity for teams and businesses.",
+        a: "Family supports up to 10 users and 10 smart-home hubs. Organization tiers add the admin dashboard and step up members, hubs, messaging, Universal Access keys, guest-call minutes, and API limits.",
       },
       {
         q: "Can I switch between monthly and annual billing?",
         a: "Yes. The pricing page compares both intervals. Annual billing typically reduces the effective monthly cost by about 16–17%.",
       },
       {
-        q: "How do I get Enterprise pricing?",
-        a: "Enterprise is custom. Contact sales with your scale, integration needs, and support requirements so we can propose the right package.",
+        q: "Do you offer a Custom plan?",
+        a: "Yes. Organization 5 is the largest fixed public tier (up to 2,500 users and 500 smart-home hubs). Custom covers larger capacity and commercial terms agreed with sales.",
       },
       {
         q: "What happens if I outgrow my plan?",
-        a: "Upgrade to the next Organization tier or speak with sales about Enterprise. Limits for members, devices, hubs, API calls, and messaging all scale with the plan.",
+        a: "Upgrade to the next Organization tier, or move to Custom if you need more than Organization 5. Members, hubs, messages, history retention, Universal Access keys, access QR, guest-call minutes, and API calls all scale with the plan.",
       },
     ],
   },

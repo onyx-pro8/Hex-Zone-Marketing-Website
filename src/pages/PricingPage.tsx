@@ -16,7 +16,7 @@ export function PricingPage() {
       <PageHero
         eyebrow="Pricing"
         title="Plans for every scale"
-        lead="Compare every Safe Zone Patrol subscription in detail — from Individual Pro to Enterprise — with features, limits, and monthly or annual billing."
+        lead="Compare Safe Zone Patrol subscriptions — from Individual Pro through Organization 5 — plus Custom for larger deployments. Feature lists and limits match what the app actually ships."
       />
 
       <section
@@ -57,7 +57,7 @@ export function PricingPage() {
           <ul className="pricing-catalog list-reset" role="list">
             {PRICING_PLANS.map((plan) => {
               const price = planPriceCopy(plan, interval);
-              const isEnterprise = plan.monthlyPrice == null;
+              const isCustom = plan.monthlyPrice == null;
 
               return (
                 <li className="pricing__item" key={plan.id}>
@@ -106,14 +106,14 @@ export function PricingPage() {
                           </ul>
                         ) : (
                           <p className="plan__quota-note">
-                            Contact us for a tailored solution with custom limits.
+                            Limits and commercial terms are scoped with sales for your deployment.
                           </p>
                         )}
                       </div>
                     </div>
 
                     <div className="plan__footer">
-                      {isEnterprise && plan.ctaHref ? (
+                      {isCustom && plan.ctaHref ? (
                         <a className="btn btn--primary plan__btn plan__btn--fill" href={plan.ctaHref}>
                           {plan.ctaLabel}
                         </a>
@@ -135,18 +135,18 @@ export function PricingPage() {
       <section className="page-section page-section--cta" aria-label="Next steps">
         <div className="container page-cta">
           <div className="page-cta__copy">
-            <h2 className="page-cta__title">Not sure which plan fits?</h2>
+            <h2 className="page-cta__title">Need a Custom plan?</h2>
             <p className="page-cta__text">
-              Review how zones and hubs work, or explore smart-home limits before you choose.
+              Review how zones and hubs work, or contact sales for capacity beyond Organization 5.
             </p>
           </div>
           <div className="page-cta__actions">
-            <Link className="btn btn--primary" to="/how-it-works">
-              How it works
+            <Link className="btn btn--primary" to="/contact">
+              Contact sales
               <Icon id="i-arrow-right" />
             </Link>
-            <Link className="btn btn--outline" to="/smart-home">
-              Smart home
+            <Link className="btn btn--outline" to="/how-it-works">
+              How it works
             </Link>
           </div>
         </div>
