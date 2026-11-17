@@ -1,18 +1,20 @@
+import { Link } from "react-router-dom";
+
 type BrandProps = {
   className?: string;
-  href?: string;
+  to?: string;
   markWidth?: number;
   markHeight?: number;
 };
 
 export function Brand({
   className = "brand",
-  href = "/",
+  to = "/",
   markWidth = 52,
   markHeight = 52,
 }: BrandProps) {
   return (
-    <a className={className} href={href}>
+    <Link className={className} to={to}>
       <img
         className="brand__mark"
         src="/assets/logo.png"
@@ -24,6 +26,6 @@ export function Brand({
       <span className="brand__name">
         Safe <span className="brand__accent">Zone</span> Patrol
       </span>
-    </a>
+    </Link>
   );
 }

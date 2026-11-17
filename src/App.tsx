@@ -1,18 +1,22 @@
-import { IconSprite } from "./components/IconSprite";
-import { SiteFooter } from "./components/SiteFooter";
-import { SiteHeader } from "./components/SiteHeader";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
+import { HowItWorksPage } from "./pages/HowItWorksPage";
+import { SmartHomePage } from "./pages/SmartHomePage";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 export default function App() {
   return (
-    <>
-      <a className="skip-link" href="#main">
-        Skip to main content
-      </a>
-      <IconSprite />
-      <SiteHeader />
-      <Home />
-      <SiteFooter />
-    </>
+    <BrowserRouter>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="how-it-works" element={<HowItWorksPage />} />
+          <Route path="smart-home" element={<SmartHomePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
