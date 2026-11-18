@@ -81,6 +81,11 @@ export function normalizeUser(raw: AuthUser): AuthUser {
     parseRegistrationType(raw.registration_type) ??
     (String(raw.role ?? "").toLowerCase() === "user" ? "USER" : "ADMINISTRATOR");
 
+  const avatar =
+    (typeof raw.avatar_url === "string" && raw.avatar_url.trim()) ||
+    (typeof raw.avatarUrl === "string" && raw.avatarUrl.trim()) ||
+    null;
+
   return {
     ...raw,
     name: displayName(raw),
@@ -92,6 +97,8 @@ export function normalizeUser(raw: AuthUser): AuthUser {
       (typeof raw.zoneId === "string" && raw.zoneId) ||
       (raw.zone_id != null ? String(raw.zone_id) : undefined),
     zone_id: raw.zone_id ?? raw.zoneId,
+    avatar_url: avatar,
+    avatarUrl: avatar,
     communalId:
       (typeof raw.communalId === "string" && raw.communalId.trim()) ||
       (typeof raw.communal_id === "string" && raw.communal_id.trim()) ||

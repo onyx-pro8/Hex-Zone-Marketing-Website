@@ -34,6 +34,8 @@ export type AuthUser = {
   address?: string;
   phone?: string | null;
   active?: boolean;
+  avatar_url?: string | null;
+  avatarUrl?: string | null;
   communal_id?: string | null;
   communalId?: string | null;
   tier_level?: number | null;

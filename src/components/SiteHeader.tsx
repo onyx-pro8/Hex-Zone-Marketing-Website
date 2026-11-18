@@ -3,6 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
+import { UserAccountMenu } from "./UserAccountMenu";
 
 type NavKey = "product" | "solutions" | "company" | null;
 
@@ -22,7 +23,7 @@ const companyLinks = [
 ];
 
 export function SiteHeader() {
-  const { user, token, logout } = useAuth();
+  const { user, token } = useAuth();
   const [openMenu, setOpenMenu] = useState<NavKey>(null);
   const headerRef = useRef<HTMLElement>(null);
   const signedIn = Boolean(token && user);
@@ -166,25 +167,7 @@ export function SiteHeader() {
             </li>
           </ul>
           {signedIn ? (
-            <div className="site-header__account">
-              <Link
-                className="btn btn--ghost site-header__signin"
-                to="/account"
-                onClick={closeMenu}
-              >
-                {user?.name?.split(" ")[0] || "Account"}
-              </Link>
-              <button
-                className="site-header__signout"
-                type="button"
-                onClick={() => {
-                  closeMenu();
-                  logout();
-                }}
-              >
-                Sign out
-              </button>
-            </div>
+            <UserAccountMenu onNavigate={closeMenu} />
           ) : (
             <Link
               className="btn btn--ghost site-header__signin"

@@ -59,6 +59,9 @@ export function PricingPage() {
 
   const signedIn = Boolean(token && user);
   const highlightedPlanId = searchParams.get("plan");
+  const isSystemAccount =
+    String(user?.accountType ?? user?.account_type ?? "").toUpperCase() ===
+      "PRIVATE" || overview?.plan?.plan_key === "private";
 
   const loadOverview = useCallback(async () => {
     if (!token) {
@@ -75,6 +78,12 @@ export function PricingPage() {
       });
     } else {
       setOverview(result.data);
+      if (result.data.plan?.plan_key === "private") {
+        setBanner({
+          tone: "warn",
+          text: "System administrator accounts have full access and do not use Stripe subscriptions.",
+        });
+      }
     }
     setOverviewLoading(false);
   }, [token]);
@@ -166,17 +175,18 @@ export function PricingPage() {
       return;
     }
 
+    if (isSystemAccount) {
+      setBanner({
+        tone: "warn",
+        text: "System administrator accounts already have full access and cannot subscribe.",
+      });
+      return;
+    }
+
     if (overview && !overview.can_manage_billing) {
       setBanner({
         tone: "warn",
         text: "Only the account holder can change the plan.",
-      });
-      return;
-    }
-    if (overview && !overview.stripe_configured) {
-      setBanner({
-        tone: "error",
-        text: "Stripe is not configured on the server yet.",
       });
       return;
     }
@@ -195,14 +205,28 @@ export function PricingPage() {
       billing_interval: interval,
     });
     setBusyPlanKey(null);
-    if (result.error || !result.data?.checkout_url) {
+
+    const checkoutUrl =
+      result.data &&
+      typeof result.data === "object" &&
+      "checkout_url" in result.data
+        ? String(
+            (result.data as { checkout_url?: string }).checkout_url || "",
+          ).trim()
+        : "";
+
+    if (result.error || !checkoutUrl) {
       setBanner({
         tone: "error",
-        text: result.error || "Could not start Stripe Checkout.",
+        text:
+          result.error ||
+          (overview && !overview.stripe_configured
+            ? "Stripe is not configured on the server yet."
+            : "Could not start Stripe Checkout."),
       });
       return;
     }
-    window.location.assign(result.data.checkout_url);
+    window.location.assign(checkoutUrl);
   }
 
   async function openPortal() {
@@ -261,12 +285,15 @@ export function PricingPage() {
                       {overview.subscription.billing_interval
                         ? ` · ${overview.subscription.billing_interval}`
                         : ""}
-                      {!overview.can_manage_billing
-                        ? " · managed by account holder"
-                        : ""}
+                      {overview.plan.plan_key === "private"
+                        ? " · system admin (no billing)"
+                        : !overview.can_manage_billing
+                          ? " · managed by account holder"
+                          : ""}
                     </p>
                   </div>
-                  {overview.can_manage_billing ? (
+                  {overview.can_manage_billing &&
+                  overview.plan.plan_key !== "private" ? (
                     <button
                       type="button"
                       className="btn btn--outline"
@@ -421,17 +448,23 @@ export function PricingPage() {
                         <button
                           type="button"
                           className="btn btn--primary plan__btn plan__btn--fill"
-                          disabled={busy || isCurrent}
+                          disabled={
+                            busy ||
+                            isCurrent ||
+                            (signedIn && isSystemAccount)
+                          }
                           onClick={() => void startCheckout(plan.id)}
                         >
                           {busy
                             ? "Redirecting…"
                             : isCurrent
                               ? "Current plan"
-                              : signedIn
-                                ? "Subscribe"
-                                : "Sign in to subscribe"}
-                          {!busy && !isCurrent ? (
+                              : signedIn && isSystemAccount
+                                ? "System access"
+                                : signedIn
+                                  ? "Subscribe"
+                                  : "Sign in to subscribe"}
+                          {!busy && !isCurrent && !(signedIn && isSystemAccount) ? (
                             <Icon id="i-arrow-right" />
                           ) : null}
                         </button>

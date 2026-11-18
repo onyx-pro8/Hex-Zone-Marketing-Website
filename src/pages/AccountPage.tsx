@@ -11,8 +11,13 @@ function accountTypeLabel(type?: string | null): string {
   return type || "—";
 }
 
+function isSystemPrivate(type?: string | null): boolean {
+  return String(type ?? "").toUpperCase() === "PRIVATE";
+}
+
 export function AccountPage() {
   const { user, token, loading, logout } = useAuth();
+  const systemAccount = isSystemPrivate(user?.accountType ?? user?.account_type);
 
   if (!loading && !token) {
     return <Navigate to="/login?next=/account" replace />;
@@ -24,10 +29,11 @@ export function AccountPage() {
         <section className="auth-card" aria-labelledby="account-title">
           <p className="eyebrow">Your account</p>
           <h1 className="auth-card__title" id="account-title">
-            {loading ? "Loading…" : user?.name || "Account"}
+            {loading ? "Loading…" : "User settings"}
           </h1>
           <p className="auth-card__lead">
-            Signed in against the shared Safe Zone Patrol database used by the
+            {user?.name ? `${user.name} · ` : ""}
+            Manage your Safe Zone Patrol profile used by the marketing site and
             mobile app.
           </p>
 
@@ -66,7 +72,7 @@ export function AccountPage() {
 
           <div className="auth-actions">
             <Link className="btn btn--outline" to="/pricing">
-              Manage subscription
+              {systemAccount ? "View pricing" : "Manage subscription"}
             </Link>
             <button className="btn btn--primary" type="button" onClick={logout}>
               Sign out
