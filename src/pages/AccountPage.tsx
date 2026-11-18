@@ -40,6 +40,25 @@ function splitName(full: string): { first_name: string; last_name: string } {
   };
 }
 
+/** Seed/legacy rows sometimes stored a role title in `address`. Treat as empty. */
+function sanitizeAddressValue(value?: string | null): string {
+  const trimmed = String(value ?? "").trim();
+  if (!trimmed) return "";
+  const normalized = trimmed.toLowerCase().replace(/\s+/g, " ");
+  if (
+    normalized === "system administrator" ||
+    normalized === "system admin" ||
+    normalized === "administrator" ||
+    normalized === "n/a" ||
+    normalized === "na" ||
+    normalized === "none" ||
+    normalized === "null"
+  ) {
+    return "";
+  }
+  return trimmed;
+}
+
 export function AccountPage() {
   const { user, token, loading, logout, refreshUser, setUserAvatar } =
     useAuth();
@@ -113,11 +132,14 @@ export function AccountPage() {
       if (cancelled) return;
       if (settingsResult.data) {
         const merged = mergeRemoteAppSettings(settingsResult.data);
-        setRemoteSettings(merged);
-        setBroadcastName(merged.broadcastName ?? "");
-        setAddress(merged.address ?? user?.address ?? "");
-      } else if (user?.address) {
-        setAddress(user.address);
+        const cleanedAddress = sanitizeAddressValue(
+          merged.address || user?.address || "",
+        );
+        setRemoteSettings({ ...merged, address: cleanedAddress });
+        setBroadcastName((merged.broadcastName ?? "").trim());
+        setAddress(cleanedAddress);
+      } else {
+        setAddress(sanitizeAddressValue(user?.address));
       }
       if (subscriptionResult.data) setOverview(subscriptionResult.data);
       setSettingsLoaded(true);
