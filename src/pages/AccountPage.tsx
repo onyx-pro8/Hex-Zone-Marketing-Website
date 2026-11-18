@@ -267,10 +267,14 @@ export function AccountPage() {
 
       const remote = String(res.data.avatar_url).trim();
       const thinPath =
-        user?.id != null ? absolutizeAvatarUrl(`/owners/${user.id}/avatar`) : remote;
+        user?.id != null
+          ? absolutizeAvatarUrl(`/owners/${user.id}/avatar`)
+          : remote;
       setHostedAvatarLabel(remote);
       keepLocalAvatarPreview.current = false;
-      setAvatarUrl(`${thinPath}${thinPath.includes("?") ? "&" : "?"}v=${Date.now()}`);
+      setAvatarUrl(
+        `${thinPath}${thinPath.includes("?") ? "&" : "?"}v=${Date.now()}`,
+      );
       setUserAvatar(thinPath);
       await refreshUser();
       setStatus("Avatar uploaded.");
@@ -375,7 +379,10 @@ export function AccountPage() {
             Profile
           </h2>
 
-          <form className="settings-form" onSubmit={(e) => void onSaveProfile(e)}>
+          <form
+            className="settings-form"
+            onSubmit={(e) => void onSaveProfile(e)}
+          >
             <div className="settings-avatar">
               <button
                 type="button"
@@ -492,7 +499,9 @@ export function AccountPage() {
 
             <div className="auth-field">
               <span className="auth-label">Account type</span>
-              <p className="settings-readonly">{accountTypeLabel(accountType)}</p>
+              <p className="settings-readonly">
+                {accountTypeLabel(accountType)}
+              </p>
               <p className="auth-hint">{accountTypeHint}</p>
             </div>
 

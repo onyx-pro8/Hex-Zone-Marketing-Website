@@ -623,7 +623,8 @@ p {
   background: linear-gradient(135deg, #2f7bff 0%, #23b9f7 100%);
   flex-shrink: 0;
 }
-.site-header__avatar.has-photo {
+.site-header__avatar.has-photo,
+.settings-avatar__button.has-photo {
   background: transparent;
 }
 .site-header__avatar img {
@@ -3340,8 +3341,7 @@ p {
   align-items: stretch;
   justify-content: center;
   padding: 48px 40px 56px;
-  background:
-    linear-gradient(180deg, #f7f9ff 0%, #eef3fb 100%);
+  background: linear-gradient(180deg, #f7f9ff 0%, #eef3fb 100%);
 }
 .auth-split__form-inner {
   width: min(100%, 460px);
@@ -3383,7 +3383,12 @@ p {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(4, 19, 48, 0.18) 0%, rgba(4, 19, 48, 0.55) 55%, rgba(4, 19, 48, 0.82) 100%),
+    linear-gradient(
+      180deg,
+      rgba(4, 19, 48, 0.18) 0%,
+      rgba(4, 19, 48, 0.55) 55%,
+      rgba(4, 19, 48, 0.82) 100%
+    ),
     linear-gradient(90deg, rgba(4, 19, 48, 0.28) 0%, transparent 28%);
 }
 .auth-split__caption {
@@ -3571,7 +3576,11 @@ p {
   min-height: min(100dvh, 960px);
   padding: 120px 0 80px;
   background:
-    radial-gradient(50% 40% at 80% 0%, rgba(47, 123, 255, 0.12), transparent 60%),
+    radial-gradient(
+      50% 40% at 80% 0%,
+      rgba(47, 123, 255, 0.12),
+      transparent 60%
+    ),
     linear-gradient(180deg, #e8eefc 0%, var(--page-bg) 45%, #fff 100%);
 }
 .auth-page__inner {
