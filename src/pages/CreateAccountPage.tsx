@@ -73,9 +73,10 @@ export function CreateAccountPage() {
     event.preventDefault();
     setError("");
 
-    if (!communalId.trim() || !communalValidated) {
+    const communal = communalId.trim().toUpperCase();
+    if (communal && !communalValidated) {
       setError(
-        "Select and validate a Communal ID. Its zones become your primary zone.",
+        "Validate your Communal ID, or clear it to continue without a primary zone.",
       );
       return;
     }
@@ -90,7 +91,7 @@ export function CreateAccountPage() {
         registrationType: "USER",
         address: address.trim() || undefined,
         phone: phone.trim() || undefined,
-        communalId: communalId.trim().toUpperCase(),
+        ...(communal ? { communalId: communal } : {}),
       });
       navigate("/login?next=/pricing");
     } catch (e: unknown) {
@@ -230,10 +231,12 @@ export function CreateAccountPage() {
 
         <div className="auth-field">
           <label className="auth-label" htmlFor="reg-communal">
-            Communal ID
+            Communal ID{" "}
+            <span className="auth-optional">(optional)</span>
           </label>
           <p className="auth-hint">
-            Required. Choose a public Communal ID that already has zones.
+            Optional. If you choose one with zones, those become your primary.
+            Skip it to create with no primary — secondary zones only.
           </p>
           <div className="auth-input-row">
             <input
@@ -246,8 +249,7 @@ export function CreateAccountPage() {
                 setCommunalValidated(false);
                 setCommunalStatus("");
               }}
-              placeholder="COMM-…"
-              required
+              placeholder="COMM-… or leave blank"
             />
             <button
               className="auth-reveal"
