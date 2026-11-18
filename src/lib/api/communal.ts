@@ -73,3 +73,31 @@ export async function listZonesForCommunalId(referenceId: string) {
     path: `/zones/communal-ids/${encodeURIComponent(id)}/zones`,
   });
 }
+
+/** Individual accounts that joined this Communal ID at signup. */
+export type CommunalJoinedMember = {
+  id: string;
+  name: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+  email?: string | null;
+  address?: string | null;
+  zone_id?: string | null;
+  role?: string | null;
+  account_type?: string | null;
+  active?: boolean;
+  online?: boolean;
+  avatar_url?: string | null;
+  communal_id: string;
+  location?: { latitude: number; longitude: number } | null;
+  lastSeen?: string | null;
+};
+
+export async function listMembersForCommunalId(referenceId: string) {
+  const id = referenceId.trim().toUpperCase();
+  return request<CommunalJoinedMember[]>({
+    method: "GET",
+    path: `/zones/communal-ids/${encodeURIComponent(id)}/members`,
+  });
+}

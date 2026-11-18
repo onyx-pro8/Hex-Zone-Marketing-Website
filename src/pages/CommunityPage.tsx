@@ -4,8 +4,10 @@ import { useAuth } from "../auth/useAuth";
 import { CommunityMap } from "../components/CommunityMap";
 import {
   listCommunalIds,
+  listMembersForCommunalId,
   listZonesForCommunalId,
   type CommunalIdRow,
+  type CommunalJoinedMember,
   type CommunalZone,
 } from "../lib/api/communal";
 import {
@@ -86,78 +88,19 @@ function cleanOwnerName(value: string | null | undefined, fallback: string): str
   return fallback;
 }
 
-/** Joined users only — excludes the signed-in user and the Communal ID creator. */
-function buildJoinedUsers(
-  members: Member[],
-  zones: CommunalZone[],
-  meId: string | null,
-  creatorId: string | null,
-): CommunityPerson[] {
-  const excluded = new Set(
-    [meId, creatorId].filter((id): id is string => Boolean(id)),
-  );
-  const byId = new Map<string, CommunityPerson>();
-
-  for (const member of members) {
-    if (excluded.has(member.id)) continue;
-    byId.set(member.id, {
-      id: member.id,
-      name: member.name,
-      email: member.email,
-      address: member.address,
-      role: member.role,
-      online: member.online,
-      lastSeen: member.lastSeen,
-      location: member.location ?? null,
-      locationKind: member.location ? "live" : null,
-      zoneNames: [...(member.zones ?? [])],
-    });
-  }
-
-  for (const zone of zones) {
-    const ownerId = zoneOwnerId(zone);
-    if (!ownerId || excluded.has(ownerId)) continue;
-
-    const zoneName =
-      typeof zone.name === "string" && zone.name.trim()
-        ? zone.name.trim()
-        : `Zone ${zone.id}`;
-    const center = readZoneCenter(zone);
-    const existing = byId.get(ownerId);
-
-    if (existing) {
-      if (!existing.zoneNames.includes(zoneName)) {
-        existing.zoneNames.push(zoneName);
-      }
-      if (!existing.location && center) {
-        existing.location = {
-          latitude: center[0],
-          longitude: center[1],
-        };
-        existing.locationKind = "zone";
-      }
-      if (
-        !existing.name ||
-        existing.name.startsWith("Owner ") ||
-        existing.name === ownerId
-      ) {
-        existing.name = cleanOwnerName(zone.owner_name, existing.name);
-      }
-      continue;
-    }
-
-    byId.set(ownerId, {
-      id: ownerId,
-      name: cleanOwnerName(zone.owner_name, `Owner ${ownerId}`),
-      location: center
-        ? { latitude: center[0], longitude: center[1] }
-        : null,
-      locationKind: center ? "zone" : null,
-      zoneNames: [zoneName],
-    });
-  }
-
-  return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+function joinedMemberToPerson(row: CommunalJoinedMember): CommunityPerson {
+  return {
+    id: String(row.id),
+    name: row.name,
+    email: row.email ?? undefined,
+    address: row.address ?? undefined,
+    role: row.role ?? undefined,
+    online: row.online,
+    lastSeen: row.lastSeen ?? null,
+    location: row.location ?? null,
+    locationKind: row.location ? "live" : null,
+    zoneNames: [],
+  };
 }
 
 function buildCreatorInfo(
@@ -225,7 +168,10 @@ export function CommunityPage() {
   const { user, token, loading: authLoading } = useAuth();
   const [communalRows, setCommunalRows] = useState<CommunalIdRow[]>([]);
   const [zones, setZones] = useState<CommunalZone[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [joinedMembers, setJoinedMembers] = useState<CommunalJoinedMember[]>(
+    [],
+  );
+  const [networkMembers, setNetworkMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selection, setSelection] = useState<Selection>(null);
@@ -252,17 +198,15 @@ export function CommunityPage() {
       setLoading(true);
       setError("");
 
-      const [communalRes, membersRes] = await Promise.all([
+      const [communalRes, networkRes] = await Promise.all([
         listCommunalIds(),
         getMembers(),
       ]);
       if (cancelled) return;
 
       if (communalRes.error) setError(communalRes.error);
-      if (membersRes.error && !communalRes.error) setError(membersRes.error);
-
       setCommunalRows(communalRes.data ?? []);
-      setMembers(membersRes.data ?? []);
+      setNetworkMembers(networkRes.data ?? []);
 
       const resolved = resolveCommunalId(
         user?.communalId ?? user?.communal_id,
@@ -272,17 +216,29 @@ export function CommunityPage() {
 
       if (!resolved) {
         setZones([]);
+        setJoinedMembers([]);
         setLoading(false);
         return;
       }
 
-      const zonesRes = await listZonesForCommunalId(resolved);
+      const [zonesRes, joinedRes] = await Promise.all([
+        listZonesForCommunalId(resolved),
+        listMembersForCommunalId(resolved),
+      ]);
       if (cancelled) return;
+
       if (zonesRes.error) {
         setError(zonesRes.error);
         setZones([]);
       } else {
         setZones(zonesRes.data ?? []);
+      }
+
+      if (joinedRes.error) {
+        if (!zonesRes.error) setError(joinedRes.error);
+        setJoinedMembers([]);
+      } else {
+        setJoinedMembers(joinedRes.data ?? []);
       }
       setLoading(false);
     }
@@ -293,7 +249,7 @@ export function CommunityPage() {
     };
   }, [token, user?.communalId, user?.communal_id, networkId]);
 
-  // Publish this browser's GPS so /members can include a live fix for others.
+  // Publish this browser's GPS so joined-user lists can include a live fix.
   useEffect(() => {
     if (!token || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
@@ -319,9 +275,6 @@ export function CommunityPage() {
     [communalRows, communalId],
   );
 
-  const creatorId =
-    registryMeta?.creator_id != null ? String(registryMeta.creator_id) : null;
-
   const mapZones = useMemo(
     () =>
       zones
@@ -330,14 +283,19 @@ export function CommunityPage() {
     [zones],
   );
 
-  const people = useMemo(
-    () => buildJoinedUsers(members, zones, meId, creatorId),
-    [members, zones, meId, creatorId],
-  );
+  const people = useMemo(() => {
+    const excluded = new Set(
+      [meId].filter((id): id is string => Boolean(id)),
+    );
+    return joinedMembers
+      .filter((row) => !excluded.has(String(row.id)))
+      .map(joinedMemberToPerson)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [joinedMembers, meId]);
 
   const creator = useMemo(
-    () => buildCreatorInfo(registryMeta, members, zones),
-    [registryMeta, members, zones],
+    () => buildCreatorInfo(registryMeta, networkMembers, zones),
+    [registryMeta, networkMembers, zones],
   );
 
   const otherZones = useMemo(() => {
@@ -553,7 +511,7 @@ export function CommunityPage() {
                 </div>
                 {people.length === 0 ? (
                   <p className="community-panel__empty">
-                    No joined users on this Communal ID yet.
+                    No Individual accounts have joined this Communal ID yet.
                   </p>
                 ) : (
                   <ul className="community-list" role="list">
