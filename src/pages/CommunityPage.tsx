@@ -304,13 +304,14 @@ export function CommunityPage() {
   );
 
   const people = useMemo(() => {
-    const excluded = new Set(
-      [meId].filter((id): id is string => Boolean(id)),
-    );
-    return joinedMembers
-      .filter((row) => !excluded.has(String(row.id)))
-      .map(joinedMemberToPerson)
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const rows = joinedMembers.map(joinedMemberToPerson);
+    // Put the signed-in user first when they are a joined member.
+    rows.sort((a, b) => {
+      if (meId && a.id === meId) return -1;
+      if (meId && b.id === meId) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    return rows;
   }, [joinedMembers, meId]);
 
   const creator = useMemo(
@@ -409,7 +410,7 @@ export function CommunityPage() {
             </h1>
             <p className="community-page__lead">
               {communalId
-                ? "Joined users and zones for this Communal ID. You are hidden from the users list."
+                ? "Joined users and zones for this Communal ID."
                 : "Join or create a Communal ID to see shared zones here."}
             </p>
           </div>
@@ -546,16 +547,20 @@ export function CommunityPage() {
                     {people.map((person) => {
                       const active =
                         selection?.type === "user" && selection.id === person.id;
+                      const isMe = meId != null && person.id === meId;
                       return (
                         <li key={person.id}>
                           <button
                             type="button"
-                            className={`community-list__item${active ? " is-active" : ""}`}
+                            className={`community-list__item${active ? " is-active" : ""}${isMe ? " is-me" : ""}`}
                             onClick={() => selectUser(person)}
                           >
                             <span className="community-list__row">
                               <span className="community-list__name">
                                 {person.name}
+                                {isMe ? (
+                                  <span className="community-list__you">You</span>
+                                ) : null}
                               </span>
                               <PresenceBadge online={person.online} />
                             </span>
@@ -702,7 +707,12 @@ export function CommunityPage() {
                     </div>
                     <div>
                       <dt>Name</dt>
-                      <dd>{selectedPerson.name}</dd>
+                      <dd>
+                        {selectedPerson.name}
+                        {meId != null && selectedPerson.id === meId
+                          ? " (you)"
+                          : ""}
+                      </dd>
                     </div>
                     {selectedPerson.email ? (
                       <div>
