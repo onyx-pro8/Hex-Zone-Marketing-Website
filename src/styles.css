@@ -3949,10 +3949,32 @@ p {
 }
 .community-side {
   display: grid;
-  grid-template-rows: minmax(140px, 1fr) minmax(140px, 1fr) auto;
+  grid-template-rows: auto minmax(120px, 1fr) minmax(120px, 1fr) auto;
   gap: 12px;
   min-height: 480px;
   max-height: min(68dvh, 720px);
+}
+.community-creator {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f4f7ff 0%, #ffffff 100%);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.community-creator__badge {
+  display: inline-grid;
+  place-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e0ebff;
+  color: var(--blue-700);
+  font: 700 10px/1 var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.community-creator__item {
+  margin: 4px 8px 10px;
+  width: calc(100% - 16px);
 }
 .community-panel {
   display: grid;
