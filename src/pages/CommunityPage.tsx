@@ -269,21 +269,28 @@ export function CommunityPage() {
     };
   }, [token, user?.communalId, user?.communal_id, networkId]);
 
-  // Publish this browser's GPS so joined-user lists can include a live fix.
+  // Publish this browser's GPS so presence/location stay fresh while viewing.
   useEffect(() => {
     if (!token || !navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        void updateMemberLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        });
-      },
-      () => {
-        /* ignore permission / timeout */
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
-    );
+
+    function ping() {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          void updateMemberLocation({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          });
+        },
+        () => {
+          /* ignore permission / timeout */
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+      );
+    }
+
+    ping();
+    const timer = window.setInterval(ping, 60000);
+    return () => window.clearInterval(timer);
   }, [token]);
 
   const registryMeta = useMemo(
@@ -304,7 +311,14 @@ export function CommunityPage() {
   );
 
   const people = useMemo(() => {
-    const rows = joinedMembers.map(joinedMemberToPerson);
+    const rows = joinedMembers.map((row) => {
+      const person = joinedMemberToPerson(row);
+      // Marketing has no app WebSocket — treat the viewer as online here.
+      if (meId && person.id === meId) {
+        return { ...person, online: true };
+      }
+      return person;
+    });
     // Put the signed-in user first when they are a joined member.
     rows.sort((a, b) => {
       if (meId && a.id === meId) return -1;
@@ -314,10 +328,13 @@ export function CommunityPage() {
     return rows;
   }, [joinedMembers, meId]);
 
-  const creator = useMemo(
-    () => buildCreatorInfo(registryMeta, networkMembers, zones),
-    [registryMeta, networkMembers, zones],
-  );
+  const creator = useMemo(() => {
+    const info = buildCreatorInfo(registryMeta, networkMembers, zones);
+    if (info && meId && info.id === meId) {
+      return { ...info, online: true };
+    }
+    return info;
+  }, [registryMeta, networkMembers, zones, meId]);
 
   const otherZones = useMemo(() => {
     return mapZones.filter((zone) => {
@@ -487,141 +504,6 @@ export function CommunityPage() {
             </section>
 
             <aside className="community-side" aria-label="Community lists">
-              {creator ? (
-                <section
-                  className="community-creator"
-                  aria-labelledby="community-creator-title"
-                >
-                  <div className="community-panel__head">
-                    <h2
-                      className="community-panel__title"
-                      id="community-creator-title"
-                    >
-                      Creator
-                    </h2>
-                    <span className="community-creator__badge">Owner</span>
-                  </div>
-                  <button
-                    type="button"
-                    className={`community-list__item community-creator__item${creatorSelected ? " is-active" : ""}`}
-                    onClick={selectCreator}
-                  >
-                    <span className="community-list__row">
-                      <span className="community-list__name">{creator.name}</span>
-                      <PresenceBadge online={creator.online} />
-                    </span>
-                    <span className="community-list__meta">
-                      {[
-                        creator.networkId
-                          ? `Network ${creator.networkId}`
-                          : null,
-                        creator.location
-                          ? creator.locationKind === "live"
-                            ? "Live location"
-                            : "Near zone"
-                          : "No location",
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                  </button>
-                </section>
-              ) : null}
-
-              <section
-                className="community-panel"
-                aria-labelledby="community-users-title"
-              >
-                <div className="community-panel__head">
-                  <h2 className="community-panel__title" id="community-users-title">
-                    Joined users
-                  </h2>
-                  <span className="community-panel__count">{people.length}</span>
-                </div>
-                {people.length === 0 ? (
-                  <p className="community-panel__empty">
-                    No Individual accounts have joined this Communal ID yet.
-                  </p>
-                ) : (
-                  <ul className="community-list" role="list">
-                    {people.map((person) => {
-                      const active =
-                        selection?.type === "user" && selection.id === person.id;
-                      const isMe = meId != null && person.id === meId;
-                      return (
-                        <li key={person.id}>
-                          <button
-                            type="button"
-                            className={`community-list__item${active ? " is-active" : ""}${isMe ? " is-me" : ""}`}
-                            onClick={() => selectUser(person)}
-                          >
-                            <span className="community-list__row">
-                              <span className="community-list__name">
-                                {person.name}
-                                {isMe ? (
-                                  <span className="community-list__you">You</span>
-                                ) : null}
-                              </span>
-                              <PresenceBadge online={person.online} />
-                            </span>
-                            <span className="community-list__meta">
-                              {person.location
-                                ? person.locationKind === "live"
-                                  ? "Live location"
-                                  : "Near zone"
-                                : "No location"}
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
-
-              <section
-                className="community-panel"
-                aria-labelledby="community-zones-title"
-              >
-                <div className="community-panel__head">
-                  <h2 className="community-panel__title" id="community-zones-title">
-                    Zones
-                  </h2>
-                  <span className="community-panel__count">
-                    {otherZones.length}
-                  </span>
-                </div>
-                {otherZones.length === 0 ? (
-                  <p className="community-panel__empty">
-                    No other zones attached to this Communal ID.
-                  </p>
-                ) : (
-                  <ul className="community-list" role="list">
-                    {otherZones.map((zone) => {
-                      const active =
-                        selection?.type === "zone" && selection.id === zone.id;
-                      return (
-                        <li key={zone.id}>
-                          <button
-                            type="button"
-                            className={`community-list__item${active ? " is-active" : ""}`}
-                            onClick={() => selectZone(zone)}
-                          >
-                            <span className="community-list__name">
-                              {zone.name}
-                            </span>
-                            <span className="community-list__meta">
-                              {summarizeZone(zone.raw)}
-                              {zone.ownerName ? ` · ${zone.ownerName}` : ""}
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
-
               <section
                 className="community-detail"
                 aria-labelledby="community-detail-title"
@@ -795,6 +677,141 @@ export function CommunityPage() {
                     </div>
                   </dl>
                 ) : null}
+              </section>
+
+              {creator ? (
+                <section
+                  className="community-creator"
+                  aria-labelledby="community-creator-title"
+                >
+                  <div className="community-panel__head">
+                    <h2
+                      className="community-panel__title"
+                      id="community-creator-title"
+                    >
+                      Creator
+                    </h2>
+                    <span className="community-creator__badge">Owner</span>
+                  </div>
+                  <button
+                    type="button"
+                    className={`community-list__item community-creator__item${creatorSelected ? " is-active" : ""}`}
+                    onClick={selectCreator}
+                  >
+                    <span className="community-list__row">
+                      <span className="community-list__name">{creator.name}</span>
+                      <PresenceBadge online={creator.online} />
+                    </span>
+                    <span className="community-list__meta">
+                      {[
+                        creator.networkId
+                          ? `Network ${creator.networkId}`
+                          : null,
+                        creator.location
+                          ? creator.locationKind === "live"
+                            ? "Live location"
+                            : "Near zone"
+                          : "No location",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </button>
+                </section>
+              ) : null}
+
+              <section
+                className="community-panel"
+                aria-labelledby="community-users-title"
+              >
+                <div className="community-panel__head">
+                  <h2 className="community-panel__title" id="community-users-title">
+                    Joined users
+                  </h2>
+                  <span className="community-panel__count">{people.length}</span>
+                </div>
+                {people.length === 0 ? (
+                  <p className="community-panel__empty">
+                    No Individual accounts have joined this Communal ID yet.
+                  </p>
+                ) : (
+                  <ul className="community-list" role="list">
+                    {people.map((person) => {
+                      const active =
+                        selection?.type === "user" && selection.id === person.id;
+                      const isMe = meId != null && person.id === meId;
+                      return (
+                        <li key={person.id}>
+                          <button
+                            type="button"
+                            className={`community-list__item${active ? " is-active" : ""}${isMe ? " is-me" : ""}`}
+                            onClick={() => selectUser(person)}
+                          >
+                            <span className="community-list__row">
+                              <span className="community-list__name">
+                                {person.name}
+                                {isMe ? (
+                                  <span className="community-list__you">You</span>
+                                ) : null}
+                              </span>
+                              <PresenceBadge online={person.online} />
+                            </span>
+                            <span className="community-list__meta">
+                              {person.location
+                                ? person.locationKind === "live"
+                                  ? "Live location"
+                                  : "Near zone"
+                                : "No location"}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+
+              <section
+                className="community-panel"
+                aria-labelledby="community-zones-title"
+              >
+                <div className="community-panel__head">
+                  <h2 className="community-panel__title" id="community-zones-title">
+                    Zones
+                  </h2>
+                  <span className="community-panel__count">
+                    {otherZones.length}
+                  </span>
+                </div>
+                {otherZones.length === 0 ? (
+                  <p className="community-panel__empty">
+                    No other zones attached to this Communal ID.
+                  </p>
+                ) : (
+                  <ul className="community-list" role="list">
+                    {otherZones.map((zone) => {
+                      const active =
+                        selection?.type === "zone" && selection.id === zone.id;
+                      return (
+                        <li key={zone.id}>
+                          <button
+                            type="button"
+                            className={`community-list__item${active ? " is-active" : ""}`}
+                            onClick={() => selectZone(zone)}
+                          >
+                            <span className="community-list__name">
+                              {zone.name}
+                            </span>
+                            <span className="community-list__meta">
+                              {summarizeZone(zone.raw)}
+                              {zone.ownerName ? ` · ${zone.ownerName}` : ""}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </section>
             </aside>
           </div>
