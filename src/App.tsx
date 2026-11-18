@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { AboutPage } from "./pages/AboutPage";
 import { AccountPage } from "./pages/AccountPage";
+import { CommunityPage } from "./pages/CommunityPage";
 import { ContactPage } from "./pages/ContactPage";
 import { CreateAccountPage } from "./pages/CreateAccountPage";
 import { FaqPage } from "./pages/FaqPage";
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="register" element={<CreateAccountPage />} />
             <Route path="signup" element={<Navigate to="/register" replace />} />
             <Route path="account" element={<AccountPage />} />
+            <Route path="community" element={<CommunityPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

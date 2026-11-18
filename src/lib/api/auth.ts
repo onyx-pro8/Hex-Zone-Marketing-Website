@@ -20,13 +20,13 @@ export type AuthUser = {
   name?: string;
   email?: string;
   username?: string;
+  first_name?: string;
+  last_name?: string;
   accountType?: AccountType;
   registrationType?: RegistrationType;
   accountOwnerId?: number;
   role?: UserRole;
   zoneId?: string;
-  first_name?: string;
-  last_name?: string;
   zone_id?: string | number;
   account_type?: string;
   registration_type?: string;
@@ -34,6 +34,8 @@ export type AuthUser = {
   address?: string;
   phone?: string | null;
   active?: boolean;
+  avatar_url?: string | null;
+  avatarUrl?: string | null;
   communal_id?: string | null;
   communalId?: string | null;
   tier_level?: number | null;
