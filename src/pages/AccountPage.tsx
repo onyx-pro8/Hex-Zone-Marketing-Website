@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { AddressAutocompleteInput } from "../components/AddressAutocompleteInput";
 import { useAuth } from "../auth/useAuth";
 import {
   checkUsernameAvailable,
@@ -523,22 +524,16 @@ export function AccountPage() {
               />
             </div>
 
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="settings-address">
-                Address
-              </label>
-              <input
-                id="settings-address"
-                className="auth-input"
-                value={address}
-                onChange={(e) => {
-                  setAddress(e.target.value);
-                  setIdentitySaved(false);
-                }}
-                placeholder="169 Fred Young Drive, Toronto, Ontario"
-                autoComplete="street-address"
-              />
-            </div>
+            <AddressAutocompleteInput
+              id="settings-address"
+              label="Address"
+              value={address}
+              onChange={(next) => {
+                setAddress(next);
+                setIdentitySaved(false);
+              }}
+              hint="Start typing and pick a suggestion to set your home address."
+            />
 
             <button
               className="btn btn--primary auth-submit"

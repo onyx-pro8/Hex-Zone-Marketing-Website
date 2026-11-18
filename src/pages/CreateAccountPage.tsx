@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AddressAutocompleteInput } from "../components/AddressAutocompleteInput";
 import { AuthSplit } from "../components/AuthSplit";
 import { useAuth } from "../auth/useAuth";
 import {
@@ -204,33 +205,28 @@ export function CreateAccountPage() {
           </div>
         </div>
 
-        <div className="auth-grid">
-          <div className="auth-field">
-            <label className="auth-label" htmlFor="reg-phone">
-              Phone <span className="auth-optional">(optional)</span>
-            </label>
-            <input
-              id="reg-phone"
-              className="auth-input"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              autoComplete="tel"
-            />
-          </div>
-          <div className="auth-field">
-            <label className="auth-label" htmlFor="reg-address">
-              Address <span className="auth-optional">(optional)</span>
-            </label>
-            <input
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="reg-phone">
+                Phone <span className="auth-optional">(optional)</span>
+              </label>
+              <input
+                id="reg-phone"
+                className="auth-input"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                autoComplete="tel"
+              />
+            </div>
+
+            <AddressAutocompleteInput
               id="reg-address"
-              className="auth-input"
+              label="Address"
+              optional
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              autoComplete="street-address"
+              onChange={(next) => setAddress(next)}
+              hint="Start typing and pick a suggestion."
             />
-          </div>
-        </div>
 
         <div className="auth-field">
           <label className="auth-label" htmlFor="reg-communal">

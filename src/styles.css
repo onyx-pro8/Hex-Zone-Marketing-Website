@@ -3693,6 +3693,62 @@ p {
   margin-top: 8px;
 }
 
+/* Address search (Photon / OpenStreetMap) */
+.address-autocomplete {
+  position: relative;
+}
+.address-autocomplete__control {
+  position: relative;
+}
+.address-autocomplete__spinner {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--blue-600);
+  font: 700 14px/1 var(--font-body);
+  pointer-events: none;
+}
+.address-autocomplete__list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
+.address-autocomplete__option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-800);
+  text-align: left;
+  cursor: pointer;
+}
+.address-autocomplete__option:hover,
+.address-autocomplete__option.is-active {
+  background: #eef4ff;
+  color: var(--blue-700);
+}
+.address-autocomplete__option-main {
+  font: 600 14px/1.35 var(--font-body);
+}
+.address-autocomplete__option-sub {
+  font: 400 12px/1.35 var(--font-body);
+  color: var(--ink-400);
+}
+
 @media (max-width: 959.98px) {
   .auth-split {
     grid-template-columns: minmax(0, 1fr);
