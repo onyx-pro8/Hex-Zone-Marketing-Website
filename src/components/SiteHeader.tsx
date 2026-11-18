@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 
@@ -21,8 +22,10 @@ const companyLinks = [
 ];
 
 export function SiteHeader() {
+  const { user, token, logout } = useAuth();
   const [openMenu, setOpenMenu] = useState<NavKey>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const signedIn = Boolean(token && user);
 
   useEffect(() => {
     function onDocumentClick(event: MouseEvent) {
@@ -162,9 +165,35 @@ export function SiteHeader() {
               </ul>
             </li>
           </ul>
-          <a className="btn btn--ghost site-header__signin" href="#">
-            Sign In
-          </a>
+          {signedIn ? (
+            <div className="site-header__account">
+              <Link
+                className="btn btn--ghost site-header__signin"
+                to="/account"
+                onClick={closeMenu}
+              >
+                {user?.name?.split(" ")[0] || "Account"}
+              </Link>
+              <button
+                className="site-header__signout"
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  logout();
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <Link
+              className="btn btn--ghost site-header__signin"
+              to="/login"
+              onClick={closeMenu}
+            >
+              Sign In
+            </Link>
+          )}
         </nav>
       </div>
     </header>

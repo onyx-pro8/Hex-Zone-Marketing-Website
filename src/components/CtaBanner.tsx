@@ -62,7 +62,7 @@ export function CtaBanner() {
             </h2>
           </div>
 
-          <Link className="btn btn--primary cta__btn" to="/pricing">
+          <Link className="btn btn--primary cta__btn" to="/register">
             Get started
             <Icon id="i-arrow-right" />
           </Link>

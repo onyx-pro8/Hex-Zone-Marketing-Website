@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Icon } from "./Icon";
 
 const checklist = [
@@ -34,10 +35,10 @@ export function ZonePanel() {
               Whether you’re managing a community, a workplace, or a critical operation, Safe Zone
               Patrol gives you the tools to stay informed, stay secure, and stay connected.
             </p>
-            <a className="btn btn--primary zone-panel__cta" href="#pricing">
+            <Link className="btn btn--primary zone-panel__cta" to="/register">
               Get Started Free
               <Icon id="i-arrow-right" />
-            </a>
+            </Link>
           </div>
 
           <ul className="zone-panel__list" role="list">
