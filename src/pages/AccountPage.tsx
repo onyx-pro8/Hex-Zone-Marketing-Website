@@ -15,6 +15,7 @@ import {
 } from "../lib/api";
 import {
   absolutizeAvatarUrl,
+  clearBlackAvatarBackground,
   initialsFor,
   readFileAsDataUrl,
   useAuthenticatedAvatarSrc,
@@ -207,13 +208,32 @@ export function AccountPage() {
     return { ok: true, message: null };
   }
 
-  function clearAvatar() {
-    keepLocalAvatarPreview.current = false;
+  async function clearAvatar() {
+    if (!user?.id) {
+      setError("Not signed in.");
+      return;
+    }
+    setError("");
+    setStatus("");
+    keepLocalAvatarPreview.current = true;
     setAvatarUrl(null);
     setHostedAvatarLabel(null);
     setUserAvatar(null);
     setProfileSaved(false);
-    setStatus("Avatar removed locally. Save profile to clear it on the server.");
+    setUploadingAvatar(true);
+    const res = await updateOwnerProfile(user.id, { avatar_url: "" });
+    setUploadingAvatar(false);
+    if (res.error) {
+      setError(res.error);
+      setStatus("Could not remove avatar. Try again.");
+      return;
+    }
+    keepLocalAvatarPreview.current = false;
+    await refreshUser();
+    setUserAvatar(null);
+    setAvatarUrl(null);
+    setHostedAvatarLabel(null);
+    setStatus("Avatar removed.");
   }
 
   async function onImageSelected(file: File) {
@@ -229,7 +249,8 @@ export function AccountPage() {
     }
 
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      const rawDataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await clearBlackAvatarBackground(rawDataUrl);
       keepLocalAvatarPreview.current = true;
       setAvatarUrl(dataUrl);
       setHostedAvatarLabel(null);
@@ -245,11 +266,13 @@ export function AccountPage() {
       }
 
       const remote = String(res.data.avatar_url).trim();
+      const thinPath =
+        user?.id != null ? absolutizeAvatarUrl(`/owners/${user.id}/avatar`) : remote;
       setHostedAvatarLabel(remote);
-      setAvatarUrl(dataUrl);
+      keepLocalAvatarPreview.current = false;
+      setAvatarUrl(`${thinPath}${thinPath.includes("?") ? "&" : "?"}v=${Date.now()}`);
+      setUserAvatar(thinPath);
       await refreshUser();
-      keepLocalAvatarPreview.current = true;
-      setAvatarUrl(dataUrl);
       setStatus("Avatar uploaded.");
     } catch (err) {
       setUploadingAvatar(false);
@@ -356,7 +379,7 @@ export function AccountPage() {
             <div className="settings-avatar">
               <button
                 type="button"
-                className="settings-avatar__button"
+                className={`settings-avatar__button${previewSrc ? " has-photo" : ""}`}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingAvatar}
                 aria-label="Upload profile photo"
@@ -381,7 +404,7 @@ export function AccountPage() {
                     type="button"
                     className="btn btn--ghost-light"
                     disabled={uploadingAvatar}
-                    onClick={clearAvatar}
+                    onClick={() => void clearAvatar()}
                   >
                     Remove
                   </button>

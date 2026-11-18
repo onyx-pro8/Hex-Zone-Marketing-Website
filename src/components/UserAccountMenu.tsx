@@ -48,7 +48,10 @@ export function UserAccountMenu({ onNavigate }: UserAccountMenuProps) {
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="site-header__avatar" aria-hidden="true">
+        <span
+          className={`site-header__avatar${avatarSrc ? " has-photo" : ""}`}
+          aria-hidden="true"
+        >
           {avatarSrc ? (
             <img src={avatarSrc} alt="" width={32} height={32} />
           ) : (
