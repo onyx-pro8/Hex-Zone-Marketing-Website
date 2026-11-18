@@ -31,6 +31,7 @@ type AuthContextValue = {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  setUserAvatar: (avatarUrl: string | null) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -227,6 +228,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (result.error) throw new Error(result.error);
   }, []);
 
+  const setUserAvatar = useCallback((avatarUrl: string | null) => {
+    setUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            avatar_url: avatarUrl,
+            avatarUrl: avatarUrl,
+          }
+        : prev,
+    );
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -236,8 +249,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       refreshUser,
+      setUserAvatar,
     }),
-    [user, token, loading, login, register, logout, refreshUser],
+    [user, token, loading, login, register, logout, refreshUser, setUserAvatar],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

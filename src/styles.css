@@ -3561,8 +3561,9 @@ p {
   font: 400 13px/1.45 var(--font-body);
 }
 
-/* Account page keeps a simple centered panel (not login/register) */
-.auth-page {
+/* Account / user settings */
+.auth-page,
+.settings-page {
   min-height: min(100dvh, 960px);
   padding: 120px 0 80px;
   background:
@@ -3573,52 +3574,123 @@ p {
   display: grid;
   justify-items: center;
 }
-.auth-card {
-  width: min(100%, 460px);
-  padding: 36px 32px 28px;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
+.settings-page__inner {
+  width: min(100%, 640px);
+  margin-inline: auto;
+  display: grid;
+  gap: 28px;
 }
-.auth-card__title {
-  margin: 8px 0 0;
-  font: 700 clamp(1.6rem, 1.2rem + 1.2vw, 2rem) / 1.15 var(--font-display);
+.settings-page__header {
+  display: grid;
+  gap: 8px;
+}
+.settings-page__title {
+  margin: 0;
+  font: 700 clamp(1.7rem, 1.3rem + 1.2vw, 2.2rem) / 1.15 var(--font-display);
   color: var(--ink-900);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
-.auth-card__lead {
-  margin: 10px 0 0;
+.settings-page__lead {
+  margin: 0;
   color: var(--ink-500);
   font: 400 15px/1.55 var(--font-body);
+  max-width: 46ch;
 }
-.account-meta {
+.settings-section {
   display: grid;
-  gap: 12px;
-  margin: 24px 0 0;
+  gap: 14px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(20, 40, 100, 0.1);
 }
-.account-meta > div {
-  display: grid;
-  gap: 2px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
-}
-.account-meta dt {
+.settings-section__title {
+  margin: 0;
   font: 700 11px/1.2 var(--font-body);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-400);
 }
-.account-meta dd {
+.settings-section__lead {
   margin: 0;
-  font: 600 15px/1.35 var(--font-body);
-  color: var(--ink-800);
-  word-break: break-word;
+  color: var(--ink-500);
+  font: 400 14px/1.5 var(--font-body);
+}
+.settings-form {
+  display: grid;
+  gap: 16px;
+}
+.settings-avatar {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+.settings-avatar__button {
+  width: 96px;
+  height: 96px;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2f7bff 0%, #23b9f7 100%);
+  box-shadow: 0 10px 24px -12px rgba(10, 112, 245, 0.55);
+}
+.settings-avatar__button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.settings-avatar__fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  font: 700 28px/1 var(--font-display);
+}
+.settings-avatar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.settings-avatar__actions .btn {
+  --btn-h: 40px;
+  --btn-px: 16px;
+  --btn-fs: 13px;
+}
+.btn--ghost-light {
+  color: var(--ink-600);
+  border-color: transparent;
+  background: transparent;
+}
+.btn--ghost-light:hover {
+  color: var(--ink-900);
+  background: rgba(20, 40, 100, 0.06);
+}
+.settings-readonly {
+  margin: 0;
+  font: 700 16px/1.35 var(--font-body);
+  color: var(--ink-900);
+}
+.settings-subscription {
+  display: grid;
+  gap: 10px;
+}
+.settings-status {
+  margin: 0;
+  color: var(--ink-500);
+  font: 500 14px/1.4 var(--font-body);
+}
+.settings-status.is-ok {
+  color: #0b7a5a;
 }
 .auth-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 24px;
+  margin-top: 8px;
 }
 
 @media (max-width: 959.98px) {
@@ -3639,7 +3711,8 @@ p {
   }
 }
 @media (max-width: 639.98px) {
-  .auth-page {
+  .auth-page,
+  .settings-page {
     padding: 100px 0 56px;
   }
   .auth-grid {
