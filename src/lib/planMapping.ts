@@ -72,23 +72,36 @@ export function planFromQuery(
   };
 }
 
-export function registerPathForPlan(planId: string): string {
+/** Marketing plan card ids → Stripe /subscription plan_key values. */
+export function checkoutPlanKeyForPricingId(planId: string): string | null {
   switch (planId) {
     case "individual-pro":
-      return "/register?plan=individual-pro";
+      return "enhanced";
     case "family":
-      return "/register?plan=family";
+      return "private_plus";
     case "org-1":
-      return "/register?plan=org-1";
+      return "enhanced_plus_1";
     case "org-2":
-      return "/register?plan=org-2";
+      return "enhanced_plus_2";
     case "org-3":
-      return "/register?plan=org-3";
+      return "enhanced_plus_3";
     case "org-4":
-      return "/register?plan=org-4";
+      return "enhanced_plus_4";
     case "org-5":
-      return "/register?plan=org-5";
+      return "enhanced_plus_5";
     default:
-      return "/register";
+      return null;
   }
+}
+
+/** CTA target for pricing cards — subscribe after sign-in. */
+export function pricingCtaPathForPlan(planId: string): string {
+  const key = checkoutPlanKeyForPricingId(planId);
+  if (!key) return "/register";
+  return `/pricing?plan=${encodeURIComponent(planId)}`;
+}
+
+/** @deprecated Prefer pricingCtaPathForPlan — signup is Individual-only. */
+export function registerPathForPlan(planId: string): string {
+  return pricingCtaPathForPlan(planId);
 }
