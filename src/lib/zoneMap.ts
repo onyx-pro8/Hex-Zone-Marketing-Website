@@ -11,19 +11,52 @@ export type MapZoneShape = {
   id: string;
   name: string;
   color: string;
+  typeLabel: string;
+  ownerName?: string | null;
   rings: LatLng[][];
   circles: ZoneCircle[];
   marker?: LatLng;
+  raw: CommunalZone;
 };
 
-const ZONE_COLORS = [
-  "#2f7bff",
-  "#23b9f7",
-  "#0fbf8c",
-  "#fb8616",
-  "#8b66f0",
-  "#e5484d",
-];
+export type MapFocusTarget =
+  | { kind: "bounds"; points: LatLng[]; key: string }
+  | { kind: "point"; center: LatLng; zoom?: number; key: string };
+
+const ZONE_TYPE_COLORS: Record<string, string> = {
+  geofence: "#2F80ED",
+  grid: "#F59E0B",
+  proximity: "#06B6D4",
+  dynamic: "#22C55E",
+  communal_id: "#8B5CF6",
+  government_local_code: "#0EA5E9",
+  object: "#A855F7",
+};
+
+const ZONE_TYPE_LABELS: Record<string, string> = {
+  geofence: "Geofence",
+  grid: "Grid",
+  proximity: "Proximity",
+  dynamic: "Dynamic",
+  communal_id: "Communal ID",
+  government_local_code: "City Code",
+  object: "Monument",
+};
+
+export function normalizeZoneType(value: unknown): string {
+  const raw = typeof value === "string" ? value.toLowerCase() : "";
+  if (raw in ZONE_TYPE_COLORS) return raw;
+  if (raw === "custom_1") return "communal_id";
+  return "geofence";
+}
+
+export function colorForZoneType(type: string): string {
+  return ZONE_TYPE_COLORS[type] ?? "#2F80ED";
+}
+
+export function labelForZoneType(type: string): string {
+  return ZONE_TYPE_LABELS[type] ?? "Geofence";
+}
 
 function geoJsonPositionToLatLng(pos: unknown): LatLng | null {
   if (!Array.isArray(pos) || pos.length < 2) return null;
@@ -151,12 +184,35 @@ export function readZoneCenter(zone: CommunalZone): LatLng | null {
   return circle?.center ?? null;
 }
 
-export function zoneToMapShape(
-  zone: CommunalZone,
-  index: number,
-): MapZoneShape | null {
+export function summarizeZone(zone: CommunalZone): string {
+  const t = normalizeZoneType(zone.type ?? zone.zone_type);
+  const cfg = (zone.config ?? {}) as Record<string, unknown>;
+  const tier =
+    zone.is_primary === true
+      ? "Primary · "
+      : zone.is_primary === false
+        ? "Secondary · "
+        : "";
+  if (t === "proximity" || t === "object" || t === "dynamic") {
+    const r =
+      Number(cfg.radius_meters) || Number(cfg.resolved_radius_meters) || NaN;
+    if (Number.isFinite(r) && r > 0) {
+      return `${tier}${labelForZoneType(t)} · ${Math.round(r)} m`;
+    }
+  }
+  if (t === "communal_id") {
+    const id = typeof cfg.communal_id === "string" ? cfg.communal_id : "";
+    return id
+      ? `${tier}Communal · ${id}`
+      : `${tier}${labelForZoneType(t)}`;
+  }
+  return `${tier}${labelForZoneType(t)}`;
+}
+
+export function zoneToMapShape(zone: CommunalZone): MapZoneShape | null {
   const id = zone.id ?? zone.zone_id;
   if (id == null) return null;
+  const type = normalizeZoneType(zone.type ?? zone.zone_type);
   const rings = readZoneRings(zone);
   const circles = readZoneCircles(zone);
   const marker = readZoneCenter(zone) ?? undefined;
@@ -168,10 +224,13 @@ export function zoneToMapShape(
   return {
     id: String(id),
     name,
-    color: ZONE_COLORS[index % ZONE_COLORS.length]!,
+    color: colorForZoneType(type),
+    typeLabel: labelForZoneType(type),
+    ownerName: zone.owner_name ?? null,
     rings,
     circles,
     marker,
+    raw: zone,
   };
 }
 
@@ -187,6 +246,13 @@ export function boundsFromPoints(points: LatLng[]): LatLng[] | null {
     minLng = Math.min(minLng, lng);
     maxLng = Math.max(maxLng, lng);
   }
+  if (minLat === maxLat && minLng === maxLng) {
+    const pad = 0.002;
+    return [
+      [minLat - pad, minLng - pad],
+      [maxLat + pad, maxLng + pad],
+    ];
+  }
   return [
     [minLat, minLng],
     [maxLat, maxLng],
@@ -197,10 +263,29 @@ export function collectShapePoints(shapes: MapZoneShape[]): LatLng[] {
   const points: LatLng[] = [];
   for (const shape of shapes) {
     if (shape.marker) points.push(shape.marker);
-    for (const circle of shape.circles) points.push(circle.center);
+    for (const circle of shape.circles) {
+      points.push(circle.center);
+      // Rough corners so fitBounds accounts for radius.
+      const d = circle.radiusMeters / 111320;
+      points.push([circle.center[0] + d, circle.center[1]]);
+      points.push([circle.center[0] - d, circle.center[1]]);
+    }
     for (const ring of shape.rings) {
       for (const pt of ring) points.push(pt);
     }
   }
   return points;
+}
+
+export function focusTargetForZone(shape: MapZoneShape): MapFocusTarget {
+  const points = collectShapePoints([shape]);
+  if (points.length > 0) {
+    return { kind: "bounds", points, key: `zone-${shape.id}-${Date.now()}` };
+  }
+  return {
+    kind: "point",
+    center: shape.marker ?? [51.5074, -0.1278],
+    zoom: 14,
+    key: `zone-${shape.id}-${Date.now()}`,
+  };
 }

@@ -19,22 +19,38 @@ export type Member = {
   lastSeen?: string | null;
 };
 
+function readCoord(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function readLocation(raw: Record<string, unknown>): Member["location"] {
+  const nested =
+    raw.location && typeof raw.location === "object"
+      ? (raw.location as Record<string, unknown>)
+      : null;
+  const lat = readCoord(
+    nested?.latitude ?? nested?.lat ?? raw.latitude ?? raw.lat,
+  );
+  const lng = readCoord(
+    nested?.longitude ?? nested?.lng ?? nested?.lon ?? raw.longitude ?? raw.lng,
+  );
+  if (lat == null || lng == null || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    return null;
+  }
+  return { latitude: lat, longitude: lng };
+}
+
 function normalizeMember(raw: unknown): Member | null {
   if (!raw || typeof raw !== "object") return null;
   const row = raw as Record<string, unknown>;
   const id = row.id;
   const name = row.name ?? row.first_name ?? row.username ?? row.email;
   if (id == null || (typeof name !== "string" && name == null)) return null;
-
-  let location: Member["location"] = null;
-  const rawLocation = row.location;
-  if (rawLocation && typeof rawLocation === "object") {
-    const lat = (rawLocation as Record<string, unknown>).latitude;
-    const lng = (rawLocation as Record<string, unknown>).longitude;
-    if (typeof lat === "number" && typeof lng === "number") {
-      location = { latitude: lat, longitude: lng };
-    }
-  }
 
   const rawZoneId = row.zone_id ?? row.zoneId;
   return {
@@ -65,7 +81,7 @@ function normalizeMember(raw: unknown): Member | null {
         : typeof row.accountType === "string"
           ? row.accountType
           : undefined,
-    location,
+    location: readLocation(row),
     zones: Array.isArray(row.zones)
       ? row.zones.filter((z): z is string => typeof z === "string")
       : [],
@@ -95,4 +111,15 @@ export async function getMembers() {
       .map(normalizeMember)
       .filter((member): member is Member => Boolean(member)),
   };
+}
+
+export async function updateMemberLocation(payload: {
+  latitude: number;
+  longitude: number;
+}) {
+  return request<{ latitude: number; longitude: number; zones?: string[] }>({
+    method: "POST",
+    path: "/members/location",
+    body: payload,
+  });
 }

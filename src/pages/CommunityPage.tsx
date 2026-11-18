@@ -8,8 +8,37 @@ import {
   type CommunalIdRow,
   type CommunalZone,
 } from "../lib/api/communal";
-import { getMembers, type Member } from "../lib/api/members";
-import { zoneToMapShape } from "../lib/zoneMap";
+import {
+  getMembers,
+  updateMemberLocation,
+  type Member,
+} from "../lib/api/members";
+import {
+  focusTargetForZone,
+  readZoneCenter,
+  summarizeZone,
+  zoneToMapShape,
+  type MapFocusTarget,
+  type MapZoneShape,
+} from "../lib/zoneMap";
+
+type CommunityPerson = {
+  id: string;
+  name: string;
+  email?: string;
+  address?: string;
+  role?: string;
+  online?: boolean;
+  lastSeen?: string | null;
+  location: { latitude: number; longitude: number } | null;
+  locationKind: "live" | "zone" | null;
+  zoneNames: string[];
+};
+
+type Selection =
+  | { type: "user"; id: string }
+  | { type: "zone"; id: string }
+  | null;
 
 function resolveCommunalId(
   profileId: string | null | undefined,
@@ -29,6 +58,91 @@ function resolveCommunalId(
   return ref || null;
 }
 
+function buildPeople(
+  members: Member[],
+  zones: CommunalZone[],
+  meId: string | null,
+): CommunityPerson[] {
+  const byId = new Map<string, CommunityPerson>();
+
+  for (const member of members) {
+    if (meId && member.id === meId) continue;
+    byId.set(member.id, {
+      id: member.id,
+      name: member.name,
+      email: member.email,
+      address: member.address,
+      role: member.role,
+      online: member.online,
+      lastSeen: member.lastSeen,
+      location: member.location ?? null,
+      locationKind: member.location ? "live" : null,
+      zoneNames: [...(member.zones ?? [])],
+    });
+  }
+
+  for (const zone of zones) {
+    const ownerId =
+      zone.owner_id != null
+        ? String(zone.owner_id)
+        : zone.creator_id != null
+          ? String(zone.creator_id)
+          : null;
+    if (!ownerId || (meId && ownerId === meId)) continue;
+
+    const zoneName =
+      typeof zone.name === "string" && zone.name.trim()
+        ? zone.name.trim()
+        : `Zone ${zone.id}`;
+    const center = readZoneCenter(zone);
+    const existing = byId.get(ownerId);
+
+    if (existing) {
+      if (!existing.zoneNames.includes(zoneName)) {
+        existing.zoneNames.push(zoneName);
+      }
+      if (!existing.location && center) {
+        existing.location = {
+          latitude: center[0],
+          longitude: center[1],
+        };
+        existing.locationKind = "zone";
+      }
+      if (
+        !existing.name ||
+        existing.name.startsWith("Owner ") ||
+        existing.name === ownerId
+      ) {
+        const ownerName = String(zone.owner_name ?? "").trim();
+        if (ownerName && !/^owner\s*#?\d+$/i.test(ownerName)) {
+          existing.name = ownerName;
+        }
+      }
+      continue;
+    }
+
+    const ownerName = String(zone.owner_name ?? "").trim();
+    byId.set(ownerId, {
+      id: ownerId,
+      name:
+        ownerName && !/^owner\s*#?\d+$/i.test(ownerName)
+          ? ownerName
+          : `Owner ${ownerId}`,
+      location: center
+        ? { latitude: center[0], longitude: center[1] }
+        : null,
+      locationKind: center ? "zone" : null,
+      zoneNames: [zoneName],
+    });
+  }
+
+  return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function formatCoord(value: number): string {
+  return value.toFixed(5);
+}
+
 export function CommunityPage() {
   const { user, token, loading: authLoading } = useAuth();
   const [communalRows, setCommunalRows] = useState<CommunalIdRow[]>([]);
@@ -36,9 +150,12 @@ export function CommunityPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [draft, setDraft] = useState("");
+  const [selection, setSelection] = useState<Selection>(null);
+  const [focus, setFocus] = useState<MapFocusTarget | null>(null);
 
-  const networkId = user?.zoneId ?? (user?.zone_id != null ? String(user.zone_id) : null);
+  const meId = user?.id != null ? String(user.id) : null;
+  const networkId =
+    user?.zoneId ?? (user?.zone_id != null ? String(user.zone_id) : null);
   const communalId = useMemo(
     () =>
       resolveCommunalId(
@@ -63,9 +180,9 @@ export function CommunityPage() {
       ]);
       if (cancelled) return;
 
-      if (communalRes.error) {
-        setError(communalRes.error);
-      }
+      if (communalRes.error) setError(communalRes.error);
+      if (membersRes.error && !communalRes.error) setError(membersRes.error);
+
       setCommunalRows(communalRes.data ?? []);
       setMembers(membersRes.data ?? []);
 
@@ -96,27 +213,104 @@ export function CommunityPage() {
     return () => {
       cancelled = true;
     };
-  }, [
-    token,
-    user?.communalId,
-    user?.communal_id,
-    networkId,
-  ]);
+  }, [token, user?.communalId, user?.communal_id, networkId]);
+
+  // Publish this browser's GPS so /members can include a live fix for others.
+  useEffect(() => {
+    if (!token || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        void updateMemberLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+      },
+      () => {
+        /* ignore permission / timeout */
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+    );
+  }, [token]);
 
   const mapZones = useMemo(
     () =>
       zones
-        .map((zone, index) => zoneToMapShape(zone, index))
-        .filter((zone): zone is NonNullable<typeof zone> => zone != null),
+        .map((zone) => zoneToMapShape(zone))
+        .filter((zone): zone is MapZoneShape => zone != null),
     [zones],
   );
 
-  const userCount = members.length;
-  const zoneCount = zones.length;
+  const people = useMemo(
+    () => buildPeople(members, zones, meId),
+    [members, zones, meId],
+  );
+
+  const otherZones = useMemo(() => {
+    return mapZones.filter((zone) => {
+      const ownerId =
+        zone.raw.owner_id != null
+          ? String(zone.raw.owner_id)
+          : zone.raw.creator_id != null
+            ? String(zone.raw.creator_id)
+            : null;
+      return !meId || ownerId !== meId;
+    });
+  }, [mapZones, meId]);
+
+  const selectedPerson =
+    selection?.type === "user"
+      ? (people.find((p) => p.id === selection.id) ?? null)
+      : null;
+  const selectedZone =
+    selection?.type === "zone"
+      ? (otherZones.find((z) => z.id === selection.id) ?? null)
+      : null;
+
+  const mapMembers = useMemo(
+    () =>
+      people
+        .filter((p) => p.location)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          location: p.location,
+          selected: selection?.type === "user" && selection.id === p.id,
+        })),
+    [people, selection],
+  );
+
   const registryMeta = communalRows.find(
     (row) =>
       String(row.reference_id ?? "").trim().toUpperCase() === communalId,
   );
+
+  function selectUser(person: CommunityPerson) {
+    setSelection({ type: "user", id: person.id });
+    if (person.location) {
+      setFocus({
+        kind: "point",
+        center: [person.location.latitude, person.location.longitude],
+        zoom: 15,
+        key: `user-${person.id}-${Date.now()}`,
+      });
+      return;
+    }
+    const owned = otherZones.find((zone) => {
+      const ownerId =
+        zone.raw.owner_id != null
+          ? String(zone.raw.owner_id)
+          : zone.raw.creator_id != null
+            ? String(zone.raw.creator_id)
+            : null;
+      return ownerId === person.id;
+    });
+    if (owned) setFocus(focusTargetForZone(owned));
+  }
+
+  function selectZone(zone: MapZoneShape) {
+    setSelection({ type: "zone", id: zone.id });
+    setFocus(focusTargetForZone(zone));
+  }
 
   if (!authLoading && !token) {
     return <Navigate to="/login?next=/community" replace />;
@@ -133,18 +327,18 @@ export function CommunityPage() {
             </h1>
             <p className="community-page__lead">
               {communalId
-                ? "Map of people and zones linked to your Communal ID."
+                ? "People and zones linked to your Communal ID (you are hidden from these lists)."
                 : "Join or create a Communal ID to see shared zones here."}
             </p>
           </div>
 
           <div className="community-page__stats" aria-label="Community stats">
             <div className="community-stat">
-              <span className="community-stat__value">{userCount}</span>
+              <span className="community-stat__value">{people.length}</span>
               <span className="community-stat__label">Users</span>
             </div>
             <div className="community-stat">
-              <span className="community-stat__value">{zoneCount}</span>
+              <span className="community-stat__value">{otherZones.length}</span>
               <span className="community-stat__label">Zones</span>
             </div>
             {registryMeta?.creator_name ? (
@@ -189,7 +383,17 @@ export function CommunityPage() {
               className="community-workspace__map"
               aria-label="Communal map"
             >
-              <CommunityMap zones={mapZones} members={members} />
+              <CommunityMap
+                zones={mapZones}
+                members={mapMembers}
+                focus={focus}
+                selectedZoneId={
+                  selection?.type === "zone" ? selection.id : null
+                }
+                selectedMemberId={
+                  selection?.type === "user" ? selection.id : null
+                }
+              />
               <div className="community-map-legend" aria-hidden="true">
                 <span className="community-map-legend__item community-map-legend__item--zone">
                   Zones
@@ -200,58 +404,197 @@ export function CommunityPage() {
               </div>
             </section>
 
-            <aside
-              className="community-messages"
-              aria-labelledby="community-messages-title"
-            >
-              <div className="community-messages__head">
-                <h2
-                  className="community-messages__title"
-                  id="community-messages-title"
-                >
-                  Messages
-                </h2>
-                <p className="community-messages__lead">
-                  Community messaging will plug in here next.
-                </p>
-              </div>
-
-              <div className="community-messages__body">
-                <div className="community-messages__empty">
-                  <p>No threads yet.</p>
-                  <p>
-                    When the community message workflow is ready, conversations
-                    for this Communal ID will appear in this sidebar.
-                  </p>
-                </div>
-              </div>
-
-              <form
-                className="community-messages__composer"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                }}
+            <aside className="community-side" aria-label="Community lists">
+              <section
+                className="community-panel"
+                aria-labelledby="community-users-title"
               >
-                <label className="visually-hidden" htmlFor="community-message-draft">
-                  Message
-                </label>
-                <textarea
-                  id="community-message-draft"
-                  className="community-messages__input"
-                  rows={3}
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Messaging coming soon…"
-                  disabled
-                />
-                <button
-                  className="btn btn--primary"
-                  type="submit"
-                  disabled
-                >
-                  Send
-                </button>
-              </form>
+                <div className="community-panel__head">
+                  <h2 className="community-panel__title" id="community-users-title">
+                    Users
+                  </h2>
+                  <span className="community-panel__count">{people.length}</span>
+                </div>
+                {people.length === 0 ? (
+                  <p className="community-panel__empty">
+                    No other users on this Communal ID yet.
+                  </p>
+                ) : (
+                  <ul className="community-list" role="list">
+                    {people.map((person) => {
+                      const active =
+                        selection?.type === "user" && selection.id === person.id;
+                      return (
+                        <li key={person.id}>
+                          <button
+                            type="button"
+                            className={`community-list__item${active ? " is-active" : ""}`}
+                            onClick={() => selectUser(person)}
+                          >
+                            <span className="community-list__name">
+                              {person.name}
+                            </span>
+                            <span className="community-list__meta">
+                              {person.location
+                                ? person.locationKind === "live"
+                                  ? "Live location"
+                                  : "Near zone"
+                                : "No location"}
+                              {person.online ? " · Online" : ""}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+
+              <section
+                className="community-panel"
+                aria-labelledby="community-zones-title"
+              >
+                <div className="community-panel__head">
+                  <h2 className="community-panel__title" id="community-zones-title">
+                    Zones
+                  </h2>
+                  <span className="community-panel__count">
+                    {otherZones.length}
+                  </span>
+                </div>
+                {otherZones.length === 0 ? (
+                  <p className="community-panel__empty">
+                    No other zones attached to this Communal ID.
+                  </p>
+                ) : (
+                  <ul className="community-list" role="list">
+                    {otherZones.map((zone) => {
+                      const active =
+                        selection?.type === "zone" && selection.id === zone.id;
+                      return (
+                        <li key={zone.id}>
+                          <button
+                            type="button"
+                            className={`community-list__item${active ? " is-active" : ""}`}
+                            onClick={() => selectZone(zone)}
+                          >
+                            <span className="community-list__name">
+                              {zone.name}
+                            </span>
+                            <span className="community-list__meta">
+                              {summarizeZone(zone.raw)}
+                              {zone.ownerName ? ` · ${zone.ownerName}` : ""}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+
+              <section
+                className="community-detail"
+                aria-labelledby="community-detail-title"
+              >
+                <h2 className="community-detail__title" id="community-detail-title">
+                  Details
+                </h2>
+                {!selectedPerson && !selectedZone ? (
+                  <p className="community-panel__empty">
+                    Select a user or zone to see details and jump there on the
+                    map.
+                  </p>
+                ) : null}
+
+                {selectedPerson ? (
+                  <dl className="community-detail__grid">
+                    <div>
+                      <dt>Name</dt>
+                      <dd>{selectedPerson.name}</dd>
+                    </div>
+                    {selectedPerson.email ? (
+                      <div>
+                        <dt>Email</dt>
+                        <dd>{selectedPerson.email}</dd>
+                      </div>
+                    ) : null}
+                    {selectedPerson.role ? (
+                      <div>
+                        <dt>Role</dt>
+                        <dd>{selectedPerson.role}</dd>
+                      </div>
+                    ) : null}
+                    {selectedPerson.address ? (
+                      <div>
+                        <dt>Address</dt>
+                        <dd>{selectedPerson.address}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt>Location</dt>
+                      <dd>
+                        {selectedPerson.location
+                          ? `${formatCoord(selectedPerson.location.latitude)}, ${formatCoord(selectedPerson.location.longitude)}${selectedPerson.locationKind === "zone" ? " (zone area)" : ""}`
+                          : "Unavailable"}
+                      </dd>
+                    </div>
+                    {selectedPerson.zoneNames.length > 0 ? (
+                      <div>
+                        <dt>Zones</dt>
+                        <dd>{selectedPerson.zoneNames.join(", ")}</dd>
+                      </div>
+                    ) : null}
+                    {selectedPerson.lastSeen ? (
+                      <div>
+                        <dt>Last seen</dt>
+                        <dd>{selectedPerson.lastSeen}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                ) : null}
+
+                {selectedZone ? (
+                  <dl className="community-detail__grid">
+                    <div>
+                      <dt>Name</dt>
+                      <dd>{selectedZone.name}</dd>
+                    </div>
+                    <div>
+                      <dt>Type</dt>
+                      <dd>{selectedZone.typeLabel}</dd>
+                    </div>
+                    <div>
+                      <dt>Summary</dt>
+                      <dd>{summarizeZone(selectedZone.raw)}</dd>
+                    </div>
+                    {selectedZone.ownerName ? (
+                      <div>
+                        <dt>Owner</dt>
+                        <dd>{selectedZone.ownerName}</dd>
+                      </div>
+                    ) : null}
+                    {selectedZone.marker ? (
+                      <div>
+                        <dt>Map center</dt>
+                        <dd>
+                          {formatCoord(selectedZone.marker[0])},{" "}
+                          {formatCoord(selectedZone.marker[1])}
+                        </dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt>Shapes</dt>
+                      <dd>
+                        {selectedZone.rings.length} polygon
+                        {selectedZone.rings.length === 1 ? "" : "s"},{" "}
+                        {selectedZone.circles.length} circle
+                        {selectedZone.circles.length === 1 ? "" : "s"}
+                      </dd>
+                    </div>
+                  </dl>
+                ) : null}
+              </section>
             </aside>
           </div>
         )}
