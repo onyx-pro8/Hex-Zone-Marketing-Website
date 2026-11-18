@@ -164,6 +164,19 @@ function formatCoord(value: number): string {
   return value.toFixed(5);
 }
 
+function PresenceBadge({ online }: { online?: boolean }) {
+  const isOnline = online === true;
+  return (
+    <span
+      className={`community-presence${isOnline ? " is-online" : " is-offline"}`}
+      title={isOnline ? "Online" : "Offline"}
+    >
+      <span className="community-presence__dot" aria-hidden="true" />
+      {isOnline ? "Online" : "Offline"}
+    </span>
+  );
+}
+
 export function CommunityPage() {
   const { user, token, loading: authLoading } = useAuth();
   const [communalRows, setCommunalRows] = useState<CommunalIdRow[]>([]);
@@ -194,9 +207,11 @@ export function CommunityPage() {
     if (!token) return;
     let cancelled = false;
 
-    async function load() {
-      setLoading(true);
-      setError("");
+    async function load(isRefresh = false) {
+      if (!isRefresh) {
+        setLoading(true);
+        setError("");
+      }
 
       const [communalRes, networkRes] = await Promise.all([
         listCommunalIds(),
@@ -204,7 +219,7 @@ export function CommunityPage() {
       ]);
       if (cancelled) return;
 
-      if (communalRes.error) setError(communalRes.error);
+      if (communalRes.error && !isRefresh) setError(communalRes.error);
       setCommunalRows(communalRes.data ?? []);
       setNetworkMembers(networkRes.data ?? []);
 
@@ -217,7 +232,7 @@ export function CommunityPage() {
       if (!resolved) {
         setZones([]);
         setJoinedMembers([]);
-        setLoading(false);
+        if (!isRefresh) setLoading(false);
         return;
       }
 
@@ -228,24 +243,29 @@ export function CommunityPage() {
       if (cancelled) return;
 
       if (zonesRes.error) {
-        setError(zonesRes.error);
-        setZones([]);
+        if (!isRefresh) setError(zonesRes.error);
+        if (!isRefresh) setZones([]);
       } else {
         setZones(zonesRes.data ?? []);
       }
 
       if (joinedRes.error) {
-        if (!zonesRes.error) setError(joinedRes.error);
-        setJoinedMembers([]);
+        if (!isRefresh && !zonesRes.error) setError(joinedRes.error);
+        if (!isRefresh) setJoinedMembers([]);
       } else {
         setJoinedMembers(joinedRes.data ?? []);
       }
-      setLoading(false);
+      if (!isRefresh) setLoading(false);
     }
 
-    void load();
+    void load(false);
+    const timer = window.setInterval(() => {
+      void load(true);
+    }, 20000);
+
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
     };
   }, [token, user?.communalId, user?.communal_id, networkId]);
 
@@ -322,6 +342,7 @@ export function CommunityPage() {
         id: p.id,
         name: p.name,
         location: p.location,
+        online: p.online === true,
         selected: selection?.type === "user" && selection.id === p.id,
       }));
     // Creator is not a "user", but still get a map pin when located.
@@ -330,6 +351,7 @@ export function CommunityPage() {
         id: creator.id,
         name: creator.name,
         location: creator.location,
+        online: creator.online === true,
         selected: creatorSelected,
       });
     }
@@ -455,7 +477,10 @@ export function CommunityPage() {
                   Zones
                 </span>
                 <span className="community-map-legend__item community-map-legend__item--user">
-                  Users
+                  Online
+                </span>
+                <span className="community-map-legend__item community-map-legend__item--offline">
+                  Offline
                 </span>
               </div>
             </section>
@@ -480,7 +505,10 @@ export function CommunityPage() {
                     className={`community-list__item community-creator__item${creatorSelected ? " is-active" : ""}`}
                     onClick={selectCreator}
                   >
-                    <span className="community-list__name">{creator.name}</span>
+                    <span className="community-list__row">
+                      <span className="community-list__name">{creator.name}</span>
+                      <PresenceBadge online={creator.online} />
+                    </span>
                     <span className="community-list__meta">
                       {[
                         creator.networkId
@@ -525,8 +553,11 @@ export function CommunityPage() {
                             className={`community-list__item${active ? " is-active" : ""}`}
                             onClick={() => selectUser(person)}
                           >
-                            <span className="community-list__name">
-                              {person.name}
+                            <span className="community-list__row">
+                              <span className="community-list__name">
+                                {person.name}
+                              </span>
+                              <PresenceBadge online={person.online} />
                             </span>
                             <span className="community-list__meta">
                               {person.location
@@ -534,7 +565,6 @@ export function CommunityPage() {
                                   ? "Live location"
                                   : "Near zone"
                                 : "No location"}
-                              {person.online ? " · Online" : ""}
                             </span>
                           </button>
                         </li>
@@ -608,6 +638,12 @@ export function CommunityPage() {
                       <dd>Communal ID creator</dd>
                     </div>
                     <div>
+                      <dt>Status</dt>
+                      <dd>
+                        <PresenceBadge online={creator.online} />
+                      </dd>
+                    </div>
+                    <div>
                       <dt>Name</dt>
                       <dd>{creator.name}</dd>
                     </div>
@@ -657,6 +693,12 @@ export function CommunityPage() {
                     <div>
                       <dt>Role</dt>
                       <dd>Joined user</dd>
+                    </div>
+                    <div>
+                      <dt>Status</dt>
+                      <dd>
+                        <PresenceBadge online={selectedPerson.online} />
+                      </dd>
                     </div>
                     <div>
                       <dt>Name</dt>

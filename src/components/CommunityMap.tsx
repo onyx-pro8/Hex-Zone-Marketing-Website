@@ -22,12 +22,16 @@ import "leaflet/dist/leaflet.css";
 const OSM_TILES = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 const DEFAULT_CENTER: LatLng = [40.7527, -73.9772];
 const ACCENT = "#2F80ED";
-const USER_PIN = "#22C55E";
+const USER_ONLINE = "#22C55E";
+const USER_OFFLINE = "#94A3B8";
 
 type CommunityMapProps = {
   zones: MapZoneShape[];
   members: Array<
-    Pick<Member, "id" | "name" | "location"> & { selected?: boolean }
+    Pick<Member, "id" | "name" | "location"> & {
+      online?: boolean;
+      selected?: boolean;
+    }
   >;
   focus?: MapFocusTarget | null;
   selectedZoneId?: string | null;
@@ -169,6 +173,7 @@ export function CommunityMap({
           const loc = member.location;
           if (!loc) return null;
           const selected = selectedMemberId === member.id;
+          const online = member.online === true;
           return (
             <CircleMarker
               key={`member-${member.id}`}
@@ -176,13 +181,18 @@ export function CommunityMap({
               radius={selected ? 12 : 9}
               pathOptions={{
                 color: "#fff",
-                fillColor: selected ? ACCENT : USER_PIN,
+                fillColor: selected
+                  ? ACCENT
+                  : online
+                    ? USER_ONLINE
+                    : USER_OFFLINE,
                 fillOpacity: 1,
                 weight: selected ? 3 : 2,
               }}
             >
               <Tooltip direction="top" offset={[0, -8]}>
                 <strong>{member.name}</strong>
+                <span>{online ? " · Online" : " · Offline"}</span>
               </Tooltip>
             </CircleMarker>
           );
