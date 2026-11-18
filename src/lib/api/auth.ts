@@ -190,19 +190,16 @@ export async function loginRequest(
 export async function registerRequest(
   payload: RegisterPayload,
 ): Promise<ApiResult<{ id?: string }>> {
-  const communal =
-    payload.accountType === "EXCLUSIVE"
-      ? payload.communalId?.trim().toUpperCase()
-      : undefined;
-  const normalized: RegisterPayload =
-    payload.accountType === "EXCLUSIVE"
-      ? {
-          ...payload,
-          registrationType: "USER",
-          registrationCode: payload.registrationCode?.trim() || "FREE",
-          ...(communal ? { communalId: communal } : {}),
-        }
-      : payload;
+  // Self-serve signup is free Individual only. Paid plans activate via Stripe.
+  const communal = payload.communalId?.trim().toUpperCase();
+  const normalized: RegisterPayload = {
+    ...payload,
+    accountType: "EXCLUSIVE",
+    registrationType: "USER",
+    registrationCode: undefined,
+    tierLevel: undefined,
+    ...(communal ? { communalId: communal } : {}),
+  };
 
   const primary = await request<{ id?: string }>({
     method: "POST",
