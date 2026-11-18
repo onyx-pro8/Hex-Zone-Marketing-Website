@@ -4,7 +4,8 @@ import {
   PRICING_PLANS,
   formatMoney,
 } from "../data/pricingPlans";
-import { registerPathForPlan } from "../lib/planMapping";
+import { pricingCtaPathForPlan } from "../lib/planMapping";
+import { useAuth } from "../auth/useAuth";
 import { Icon } from "./Icon";
 
 const homePlans = HOME_PRICING_PLAN_IDS.map((id) => {
@@ -14,6 +15,9 @@ const homePlans = HOME_PRICING_PLAN_IDS.map((id) => {
 });
 
 export function Pricing() {
+  const { token, user } = useAuth();
+  const signedIn = Boolean(token && user);
+
   return (
     <section className="pricing" id="pricing" aria-labelledby="pricing-title">
       <div className="container">
@@ -23,7 +27,8 @@ export function Pricing() {
             Find the Right Plan for Your Needs
           </h2>
           <p className="section-sub">
-            Prices and limits match the live Safe Zone Patrol subscription catalog.
+            Start free with Individual, then subscribe after sign-in. Prices and
+            limits match the live Safe Zone Patrol catalog.
           </p>
         </div>
 
@@ -32,6 +37,17 @@ export function Pricing() {
             const featured = Boolean(plan.popular);
             const amount =
               plan.monthlyPrice == null ? null : formatMoney(plan.monthlyPrice);
+            const ctaTo = plan.ctaHref
+              ? null
+              : signedIn
+                ? pricingCtaPathForPlan(plan.id)
+                : `/login?next=${encodeURIComponent(pricingCtaPathForPlan(plan.id))}`;
+            const ctaLabel = plan.ctaHref
+              ? plan.ctaLabel
+              : signedIn
+                ? "Subscribe"
+                : "Sign in to subscribe";
+
             return (
               <li className="pricing__item" key={plan.id}>
                 <article
@@ -62,7 +78,10 @@ export function Pricing() {
                     <ul className="plan__features list-reset" role="list">
                       {plan.features.map((feature) => (
                         <li className="plan__feature" key={feature}>
-                          <Icon id="i-check-circle" className="icon plan__feature-icon" />
+                          <Icon
+                            id="i-check-circle"
+                            className="icon plan__feature-icon"
+                          />
                           <span>{feature}</span>
                         </li>
                       ))}
@@ -74,8 +93,12 @@ export function Pricing() {
                         <ul className="plan__quota-list list-reset" role="list">
                           {plan.quotas.map((quota) => (
                             <li className="plan__quota" key={quota.label}>
-                              <span className="plan__quota-name">{quota.label}</span>
-                              <span className="plan__quota-value">{quota.value}</span>
+                              <span className="plan__quota-name">
+                                {quota.label}
+                              </span>
+                              <span className="plan__quota-value">
+                                {quota.value}
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -88,21 +111,20 @@ export function Pricing() {
                   </div>
                   <div className="plan__footer">
                     {plan.ctaHref ? (
-                      <a
-                        className="btn btn--outline plan__btn"
-                        href={plan.ctaHref}
-                      >
-                        {plan.ctaLabel}
+                      <a className="btn btn--outline plan__btn" href={plan.ctaHref}>
+                        {ctaLabel}
                         <span className="visually-hidden"> about {plan.name}</span>
                       </a>
                     ) : (
                       <Link
                         className={
-                          featured ? "btn btn--outline plan__btn" : "link-arrow plan__cta"
+                          featured
+                            ? "btn btn--outline plan__btn"
+                            : "link-arrow plan__cta"
                         }
-                        to={registerPathForPlan(plan.id)}
+                        to={ctaTo || "/pricing"}
                       >
-                        {plan.ctaLabel}
+                        {ctaLabel}
                         <span className="visually-hidden"> with {plan.name}</span>
                         <Icon id="i-arrow-right" />
                       </Link>

@@ -66,7 +66,7 @@ export function AccountPage() {
 
           <div className="auth-actions">
             <Link className="btn btn--outline" to="/pricing">
-              View plans
+              Manage subscription
             </Link>
             <button className="btn btn--primary" type="button" onClick={logout}>
               Sign out
