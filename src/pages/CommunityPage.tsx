@@ -471,6 +471,7 @@ export function CommunityPage() {
           </div>
         ) : (
           <div className="community-workspace">
+            <div className="community-workspace__main">
             <section
               className="community-workspace__map"
               aria-label="Communal map"
@@ -504,181 +505,6 @@ export function CommunityPage() {
             </section>
 
             <aside className="community-side" aria-label="Community lists">
-              <section
-                className="community-detail"
-                aria-labelledby="community-detail-title"
-              >
-                <h2 className="community-detail__title" id="community-detail-title">
-                  Details
-                </h2>
-                {!selectedPerson && !selectedZone && !creatorSelected ? (
-                  <p className="community-panel__empty">
-                    Select the creator, a joined user, or a zone to see details
-                    and jump there on the map.
-                  </p>
-                ) : null}
-
-                {creatorSelected && creator ? (
-                  <dl className="community-detail__grid">
-                    <div>
-                      <dt>Role</dt>
-                      <dd>Communal ID creator</dd>
-                    </div>
-                    <div>
-                      <dt>Status</dt>
-                      <dd>
-                        <PresenceBadge online={creator.online} />
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Name</dt>
-                      <dd>{creator.name}</dd>
-                    </div>
-                    {creator.networkId ? (
-                      <div>
-                        <dt>Network ID</dt>
-                        <dd>{creator.networkId}</dd>
-                      </div>
-                    ) : null}
-                    {creator.createdAt ? (
-                      <div>
-                        <dt>Created</dt>
-                        <dd>{creator.createdAt}</dd>
-                      </div>
-                    ) : null}
-                    {creator.email ? (
-                      <div>
-                        <dt>Email</dt>
-                        <dd>{creator.email}</dd>
-                      </div>
-                    ) : null}
-                    {creator.address ? (
-                      <div>
-                        <dt>Address</dt>
-                        <dd>{creator.address}</dd>
-                      </div>
-                    ) : null}
-                    <div>
-                      <dt>Location</dt>
-                      <dd>
-                        {creator.location
-                          ? `${formatCoord(creator.location.latitude)}, ${formatCoord(creator.location.longitude)}${creator.locationKind === "zone" ? " (zone area)" : ""}`
-                          : "Unavailable"}
-                      </dd>
-                    </div>
-                    {creator.zoneNames.length > 0 ? (
-                      <div>
-                        <dt>Zones</dt>
-                        <dd>{creator.zoneNames.join(", ")}</dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                ) : null}
-
-                {selectedPerson ? (
-                  <dl className="community-detail__grid">
-                    <div>
-                      <dt>Role</dt>
-                      <dd>Joined user</dd>
-                    </div>
-                    <div>
-                      <dt>Status</dt>
-                      <dd>
-                        <PresenceBadge online={selectedPerson.online} />
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Name</dt>
-                      <dd>
-                        {selectedPerson.name}
-                        {meId != null && selectedPerson.id === meId
-                          ? " (you)"
-                          : ""}
-                      </dd>
-                    </div>
-                    {selectedPerson.email ? (
-                      <div>
-                        <dt>Email</dt>
-                        <dd>{selectedPerson.email}</dd>
-                      </div>
-                    ) : null}
-                    {selectedPerson.role ? (
-                      <div>
-                        <dt>Account role</dt>
-                        <dd>{selectedPerson.role}</dd>
-                      </div>
-                    ) : null}
-                    {selectedPerson.address ? (
-                      <div>
-                        <dt>Address</dt>
-                        <dd>{selectedPerson.address}</dd>
-                      </div>
-                    ) : null}
-                    <div>
-                      <dt>Location</dt>
-                      <dd>
-                        {selectedPerson.location
-                          ? `${formatCoord(selectedPerson.location.latitude)}, ${formatCoord(selectedPerson.location.longitude)}${selectedPerson.locationKind === "zone" ? " (zone area)" : ""}`
-                          : "Unavailable"}
-                      </dd>
-                    </div>
-                    {selectedPerson.zoneNames.length > 0 ? (
-                      <div>
-                        <dt>Zones</dt>
-                        <dd>{selectedPerson.zoneNames.join(", ")}</dd>
-                      </div>
-                    ) : null}
-                    {selectedPerson.lastSeen ? (
-                      <div>
-                        <dt>Last seen</dt>
-                        <dd>{selectedPerson.lastSeen}</dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                ) : null}
-
-                {selectedZone ? (
-                  <dl className="community-detail__grid">
-                    <div>
-                      <dt>Name</dt>
-                      <dd>{selectedZone.name}</dd>
-                    </div>
-                    <div>
-                      <dt>Type</dt>
-                      <dd>{selectedZone.typeLabel}</dd>
-                    </div>
-                    <div>
-                      <dt>Summary</dt>
-                      <dd>{summarizeZone(selectedZone.raw)}</dd>
-                    </div>
-                    {selectedZone.ownerName ? (
-                      <div>
-                        <dt>Owner</dt>
-                        <dd>{selectedZone.ownerName}</dd>
-                      </div>
-                    ) : null}
-                    {selectedZone.marker ? (
-                      <div>
-                        <dt>Map center</dt>
-                        <dd>
-                          {formatCoord(selectedZone.marker[0])},{" "}
-                          {formatCoord(selectedZone.marker[1])}
-                        </dd>
-                      </div>
-                    ) : null}
-                    <div>
-                      <dt>Shapes</dt>
-                      <dd>
-                        {selectedZone.rings.length} polygon
-                        {selectedZone.rings.length === 1 ? "" : "s"},{" "}
-                        {selectedZone.circles.length} circle
-                        {selectedZone.circles.length === 1 ? "" : "s"}
-                      </dd>
-                    </div>
-                  </dl>
-                ) : null}
-              </section>
-
               {creator ? (
                 <section
                   className="community-creator"
@@ -814,6 +640,182 @@ export function CommunityPage() {
                 )}
               </section>
             </aside>
+            </div>
+
+            <section
+              className="community-detail community-detail--full"
+              aria-labelledby="community-detail-title"
+            >
+              <h2 className="community-detail__title" id="community-detail-title">
+                Details
+              </h2>
+              {!selectedPerson && !selectedZone && !creatorSelected ? (
+                <p className="community-panel__empty">
+                  Select the creator, a joined user, or a zone to see details
+                  and jump there on the map.
+                </p>
+              ) : null}
+
+              {creatorSelected && creator ? (
+                <dl className="community-detail__grid">
+                  <div>
+                    <dt>Role</dt>
+                    <dd>Communal ID creator</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>
+                      <PresenceBadge online={creator.online} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Name</dt>
+                    <dd>{creator.name}</dd>
+                  </div>
+                  {creator.networkId ? (
+                    <div>
+                      <dt>Network ID</dt>
+                      <dd>{creator.networkId}</dd>
+                    </div>
+                  ) : null}
+                  {creator.createdAt ? (
+                    <div>
+                      <dt>Created</dt>
+                      <dd>{creator.createdAt}</dd>
+                    </div>
+                  ) : null}
+                  {creator.email ? (
+                    <div>
+                      <dt>Email</dt>
+                      <dd>{creator.email}</dd>
+                    </div>
+                  ) : null}
+                  {creator.address ? (
+                    <div>
+                      <dt>Address</dt>
+                      <dd>{creator.address}</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>Location</dt>
+                    <dd>
+                      {creator.location
+                        ? `${formatCoord(creator.location.latitude)}, ${formatCoord(creator.location.longitude)}${creator.locationKind === "zone" ? " (zone area)" : ""}`
+                        : "Unavailable"}
+                    </dd>
+                  </div>
+                  {creator.zoneNames.length > 0 ? (
+                    <div>
+                      <dt>Zones</dt>
+                      <dd>{creator.zoneNames.join(", ")}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              ) : null}
+
+              {selectedPerson ? (
+                <dl className="community-detail__grid">
+                  <div>
+                    <dt>Role</dt>
+                    <dd>Joined user</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>
+                      <PresenceBadge online={selectedPerson.online} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Name</dt>
+                    <dd>
+                      {selectedPerson.name}
+                      {meId != null && selectedPerson.id === meId
+                        ? " (you)"
+                        : ""}
+                    </dd>
+                  </div>
+                  {selectedPerson.email ? (
+                    <div>
+                      <dt>Email</dt>
+                      <dd>{selectedPerson.email}</dd>
+                    </div>
+                  ) : null}
+                  {selectedPerson.role ? (
+                    <div>
+                      <dt>Account role</dt>
+                      <dd>{selectedPerson.role}</dd>
+                    </div>
+                  ) : null}
+                  {selectedPerson.address ? (
+                    <div>
+                      <dt>Address</dt>
+                      <dd>{selectedPerson.address}</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>Location</dt>
+                    <dd>
+                      {selectedPerson.location
+                        ? `${formatCoord(selectedPerson.location.latitude)}, ${formatCoord(selectedPerson.location.longitude)}${selectedPerson.locationKind === "zone" ? " (zone area)" : ""}`
+                        : "Unavailable"}
+                    </dd>
+                  </div>
+                  {selectedPerson.zoneNames.length > 0 ? (
+                    <div>
+                      <dt>Zones</dt>
+                      <dd>{selectedPerson.zoneNames.join(", ")}</dd>
+                    </div>
+                  ) : null}
+                  {selectedPerson.lastSeen ? (
+                    <div>
+                      <dt>Last seen</dt>
+                      <dd>{selectedPerson.lastSeen}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              ) : null}
+
+              {selectedZone ? (
+                <dl className="community-detail__grid">
+                  <div>
+                    <dt>Name</dt>
+                    <dd>{selectedZone.name}</dd>
+                  </div>
+                  <div>
+                    <dt>Type</dt>
+                    <dd>{selectedZone.typeLabel}</dd>
+                  </div>
+                  <div>
+                    <dt>Summary</dt>
+                    <dd>{summarizeZone(selectedZone.raw)}</dd>
+                  </div>
+                  {selectedZone.ownerName ? (
+                    <div>
+                      <dt>Owner</dt>
+                      <dd>{selectedZone.ownerName}</dd>
+                    </div>
+                  ) : null}
+                  {selectedZone.marker ? (
+                    <div>
+                      <dt>Map center</dt>
+                      <dd>
+                        {formatCoord(selectedZone.marker[0])},{" "}
+                        {formatCoord(selectedZone.marker[1])}
+                      </dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>Shapes</dt>
+                    <dd>
+                      {selectedZone.rings.length} polygon
+                      {selectedZone.rings.length === 1 ? "" : "s"},{" "}
+                      {selectedZone.circles.length} circle
+                      {selectedZone.circles.length === 1 ? "" : "s"}
+                    </dd>
+                  </div>
+                </dl>
+              ) : null}
+            </section>
           </div>
         )}
       </div>

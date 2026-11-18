@@ -3872,9 +3872,14 @@ p {
 }
 .community-workspace {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.community-workspace__main {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
   gap: 16px;
-  min-height: min(68dvh, 720px);
+  min-height: min(58dvh, 640px);
   align-items: stretch;
 }
 .community-workspace__map {
@@ -3953,10 +3958,10 @@ p {
 }
 .community-side {
   display: grid;
-  grid-template-rows: auto auto minmax(120px, 1fr) minmax(120px, 1fr);
+  grid-template-rows: auto minmax(120px, 1fr) minmax(120px, 1fr);
   gap: 12px;
   min-height: 480px;
-  max-height: min(68dvh, 720px);
+  max-height: min(58dvh, 640px);
 }
 .community-creator {
   border: 1px solid var(--line);
@@ -4113,9 +4118,13 @@ p {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--shadow-sm);
-  padding: 14px;
+  padding: 14px 16px;
   display: grid;
   gap: 10px;
+}
+.community-detail--full {
+  width: 100%;
+  grid-column: 1 / -1;
 }
 .community-detail__title {
   margin: 0;
@@ -4125,7 +4134,8 @@ p {
 .community-detail__grid {
   margin: 0;
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 18px;
 }
 .community-detail__grid > div {
   display: grid;
@@ -4160,7 +4170,7 @@ p {
   .auth-split__form {
     padding: 32px 20px 48px;
   }
-  .community-workspace {
+  .community-workspace__main {
     grid-template-columns: minmax(0, 1fr);
   }
   .community-workspace__map {
@@ -4177,6 +4187,9 @@ p {
   }
   .community-panel {
     max-height: 280px;
+  }
+  .community-detail__grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 }
 @media (max-width: 639.98px) {
