@@ -7,6 +7,7 @@ import {
   planPriceCopy,
   type BillingInterval,
 } from "../data/pricingPlans";
+import { registerPathForPlan } from "../lib/planMapping";
 
 export function PricingPage() {
   const [interval, setInterval] = useState<BillingInterval>("monthly");
@@ -118,10 +119,13 @@ export function PricingPage() {
                           {plan.ctaLabel}
                         </a>
                       ) : (
-                        <a className="btn btn--primary plan__btn plan__btn--fill" href="#">
+                        <Link
+                          className="btn btn--primary plan__btn plan__btn--fill"
+                          to={registerPathForPlan(plan.id)}
+                        >
                           {plan.ctaLabel}
                           <Icon id="i-arrow-right" />
-                        </a>
+                        </Link>
                       )}
                     </div>
                   </article>

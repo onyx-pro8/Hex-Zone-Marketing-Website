@@ -4,6 +4,7 @@ import {
   PRICING_PLANS,
   formatMoney,
 } from "../data/pricingPlans";
+import { registerPathForPlan } from "../lib/planMapping";
 import { Icon } from "./Icon";
 
 const homePlans = HOME_PRICING_PLAN_IDS.map((id) => {
@@ -99,7 +100,7 @@ export function Pricing() {
                         className={
                           featured ? "btn btn--outline plan__btn" : "link-arrow plan__cta"
                         }
-                        to="/pricing"
+                        to={registerPathForPlan(plan.id)}
                       >
                         {plan.ctaLabel}
                         <span className="visually-hidden"> with {plan.name}</span>

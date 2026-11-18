@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Icon } from "./Icon";
 
 const features = [
@@ -93,9 +94,9 @@ export function Hero() {
           </p>
 
           <div className="hero__actions">
-            <a className="btn btn--cyan hero__download" href="#pricing">
+            <Link className="btn btn--cyan hero__download" to="/register">
               Get Started
-            </a>
+            </Link>
             <a className="hero__store" href="#" aria-label="Download on the App Store">
               <Icon id="i-apple" className="icon hero__store-icon hero__store-icon--apple" />
               <span className="hero__store-label">
