@@ -4,10 +4,11 @@ import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 
 const AUTH_SPLIT_PATHS = new Set(["/login", "/register", "/signup"]);
+const HIDE_FOOTER_PATHS = new Set([...AUTH_SPLIT_PATHS, "/community"]);
 
 export function Layout() {
   const { pathname } = useLocation();
-  const hideFooter = AUTH_SPLIT_PATHS.has(pathname);
+  const hideFooter = HIDE_FOOTER_PATHS.has(pathname);
 
   return (
     <>

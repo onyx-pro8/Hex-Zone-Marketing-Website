@@ -70,6 +70,17 @@ export function UserAccountMenu({ onNavigate }: UserAccountMenuProps) {
         <Link
           className="site-header__user-item"
           role="menuitem"
+          to="/community"
+          onClick={() => {
+            setOpen(false);
+            onNavigate?.();
+          }}
+        >
+          Community
+        </Link>
+        <Link
+          className="site-header__user-item"
+          role="menuitem"
           to="/account"
           onClick={() => {
             setOpen(false);

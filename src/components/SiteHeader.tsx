@@ -143,6 +143,20 @@ export function SiteHeader() {
               </NavLink>
             </li>
 
+            {signedIn ? (
+              <li>
+                <NavLink
+                  className={({ isActive }) =>
+                    `site-header__link${isActive ? " is-active" : ""}`
+                  }
+                  to="/community"
+                  onClick={closeMenu}
+                >
+                  Community
+                </NavLink>
+              </li>
+            ) : null}
+
             <li className={`nav-item${openMenu === "company" ? " is-open" : ""}`}>
               <button
                 className="site-header__link nav-item__trigger"

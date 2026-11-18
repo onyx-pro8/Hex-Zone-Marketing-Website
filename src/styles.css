@@ -3762,6 +3762,257 @@ p {
   color: var(--ink-400);
 }
 
+/* Community workspace (signed-in) */
+.community-page {
+  min-height: calc(100dvh - 72px);
+  padding: 96px 0 0;
+  background:
+    radial-gradient(
+      42% 36% at 12% 0%,
+      rgba(47, 123, 255, 0.14),
+      transparent 58%
+    ),
+    linear-gradient(180deg, #e8eefc 0%, #eff2fd 38%, #f7f9ff 100%);
+}
+.community-page__shell {
+  width: min(100% - 32px, 1240px);
+  margin-inline: auto;
+  display: grid;
+  gap: 18px;
+  padding-bottom: 28px;
+}
+.community-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px 28px;
+}
+.community-page__heading {
+  display: grid;
+  gap: 6px;
+  min-width: min(100%, 280px);
+}
+.community-page__eyebrow {
+  margin: 0;
+  font: 700 11px/1.2 var(--font-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+}
+.community-page__title {
+  margin: 0;
+  font: 700 clamp(1.6rem, 1.25rem + 1.1vw, 2.1rem) / 1.15 var(--font-display);
+  color: var(--ink-900);
+  letter-spacing: -0.03em;
+}
+.community-page__lead {
+  margin: 0;
+  color: var(--ink-500);
+  font: 400 14px/1.5 var(--font-body);
+  max-width: 42ch;
+}
+.community-page__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.community-stat {
+  min-width: 88px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 2px;
+}
+.community-stat--wide {
+  min-width: 140px;
+}
+.community-stat__value {
+  font: 700 1.35rem/1.1 var(--font-display);
+  color: var(--ink-900);
+  letter-spacing: -0.02em;
+}
+.community-stat__value--text {
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+.community-stat__label {
+  font: 600 11px/1.2 var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+}
+.community-page__status {
+  margin: 0;
+  color: var(--ink-500);
+  font: 500 14px/1.4 var(--font-body);
+}
+.community-page__status.is-error {
+  color: #b42318;
+}
+.community-empty {
+  display: grid;
+  gap: 16px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink-600);
+  font: 400 15px/1.55 var(--font-body);
+  max-width: 640px;
+}
+.community-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.community-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 16px;
+  min-height: min(68dvh, 720px);
+}
+.community-workspace__map {
+  position: relative;
+  min-height: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(8, 20, 48, 0.35);
+  box-shadow: var(--shadow-md);
+  background: #1a1d26;
+}
+.community-map {
+  position: absolute;
+  inset: 0;
+}
+.community-map__leaflet {
+  width: 100%;
+  height: 100%;
+  background: #1a1d26;
+}
+.community-map .leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #1a1d26;
+  font: 400 12px/1.35 var(--font-body);
+}
+.community-map__tip {
+  display: grid;
+  gap: 2px;
+}
+.community-map__tip strong {
+  font-weight: 700;
+}
+.community-map-legend {
+  position: absolute;
+  z-index: 500;
+  left: 14px;
+  bottom: 14px;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+.community-map-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(12, 18, 32, 0.78);
+  color: #e8eefc;
+  font: 600 11px/1 var(--font-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.community-map-legend__item::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+.community-map-legend__item--zone::before {
+  background: #2f7bff;
+  box-shadow: 0 0 0 3px rgba(47, 123, 255, 0.28);
+}
+.community-map-legend__item--user::before {
+  background: #0fbf8c;
+  box-shadow: 0 0 0 3px rgba(15, 191, 140, 0.28);
+}
+.community-messages {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 420px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.community-messages__head {
+  display: grid;
+  gap: 4px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.community-messages__title {
+  margin: 0;
+  font: 700 1rem/1.2 var(--font-display);
+  color: var(--ink-900);
+}
+.community-messages__lead {
+  margin: 0;
+  color: var(--ink-400);
+  font: 400 13px/1.4 var(--font-body);
+}
+.community-messages__body {
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+}
+.community-messages__empty {
+  display: grid;
+  gap: 8px;
+  padding: 18px 14px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f3f6ff 0%, #eef3ff 100%);
+  color: var(--ink-500);
+  font: 400 13px/1.5 var(--font-body);
+}
+.community-messages__empty p {
+  margin: 0;
+}
+.community-messages__empty p:first-child {
+  font: 700 14px/1.3 var(--font-body);
+  color: var(--ink-700);
+}
+.community-messages__composer {
+  display: grid;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--line);
+  background: rgba(248, 250, 255, 0.9);
+}
+.community-messages__input {
+  width: 100%;
+  resize: vertical;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink-800);
+  font: 400 14px/1.45 var(--font-body);
+}
+.community-messages__input:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  background: #f4f6fb;
+}
+
 @media (max-width: 959.98px) {
   .auth-split {
     grid-template-columns: minmax(0, 1fr);
@@ -3778,6 +4029,17 @@ p {
   .auth-split__form {
     padding: 32px 20px 48px;
   }
+  .community-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .community-workspace__map,
+  .community-messages {
+    min-height: 360px;
+  }
+  .community-map {
+    position: relative;
+    min-height: 360px;
+  }
 }
 @media (max-width: 639.98px) {
   .auth-page,
@@ -3786,5 +4048,11 @@ p {
   }
   .auth-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .community-page {
+    padding-top: 88px;
+  }
+  .community-page__shell {
+    width: min(100% - 24px, 1240px);
   }
 }
