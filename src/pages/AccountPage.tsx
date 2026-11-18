@@ -5,9 +5,11 @@ import {
   checkUsernameAvailable,
   getRemoteAppSettings,
   getSubscriptionOverview,
+  mergeRemoteAppSettings,
   updateOwnerProfile,
   updateRemoteAppSettings,
   uploadProfileAvatar,
+  type RemoteAppSettings,
   type SubscriptionOverview,
 } from "../lib/api";
 import {
@@ -54,6 +56,9 @@ export function AccountPage() {
   );
   const [broadcastName, setBroadcastName] = useState("");
   const [address, setAddress] = useState("");
+  const [remoteSettings, setRemoteSettings] = useState<RemoteAppSettings>(
+    mergeRemoteAppSettings(null),
+  );
   const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   const [usernameHint, setUsernameHint] = useState<string | null>(null);
@@ -107,8 +112,10 @@ export function AccountPage() {
       ]);
       if (cancelled) return;
       if (settingsResult.data) {
-        setBroadcastName(settingsResult.data.broadcastName ?? "");
-        setAddress(settingsResult.data.address ?? user?.address ?? "");
+        const merged = mergeRemoteAppSettings(settingsResult.data);
+        setRemoteSettings(merged);
+        setBroadcastName(merged.broadcastName ?? "");
+        setAddress(merged.address ?? user?.address ?? "");
       } else if (user?.address) {
         setAddress(user.address);
       }
@@ -277,17 +284,21 @@ export function AccountPage() {
     setStatus("");
     setSavingIdentity(true);
     setIdentitySaved(false);
-    const res = await updateRemoteAppSettings({
+    const payload = mergeRemoteAppSettings({
+      ...remoteSettings,
       broadcastName: broadcastName.trim(),
       address: address.trim(),
     });
+    const res = await updateRemoteAppSettings(payload);
     setSavingIdentity(false);
     if (res.error) {
       setError(res.error);
       return;
     }
-    setBroadcastName(res.data?.broadcastName ?? broadcastName.trim());
-    setAddress(res.data?.address ?? address.trim());
+    const merged = mergeRemoteAppSettings(res.data ?? payload);
+    setRemoteSettings(merged);
+    setBroadcastName(merged.broadcastName ?? "");
+    setAddress(merged.address ?? "");
     await refreshUser();
     setIdentitySaved(true);
     setStatus("Address and broadcast name updated.");

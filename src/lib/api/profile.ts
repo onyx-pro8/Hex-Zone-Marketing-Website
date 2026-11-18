@@ -14,11 +14,64 @@ export type OwnerProfileUpdate = {
 export type RemoteAppSettings = {
   broadcastName?: string;
   address?: string;
-  sharedNotification?: Record<string, unknown>;
+  sharedNotification?: {
+    hid?: string;
+    networkId?: string;
+    apiKey?: string;
+    webhook?: string;
+    periodicalCheckSec?: string;
+  };
   smartHomeDevices?: Array<{ hid: string; name?: string; active?: boolean }>;
-  quickMessages?: Record<string, unknown>;
+  quickMessages?: Record<string, string>;
   memberJoinWelcome?: string;
 };
+
+export const DEFAULT_REMOTE_APP_SETTINGS: Required<
+  Pick<
+    RemoteAppSettings,
+    | "broadcastName"
+    | "address"
+    | "sharedNotification"
+    | "quickMessages"
+    | "memberJoinWelcome"
+  >
+> = {
+  broadcastName: "",
+  address: "",
+  sharedNotification: {
+    hid: "",
+    networkId: "",
+    apiKey: "",
+    webhook: "",
+    periodicalCheckSec: "86400",
+  },
+  quickMessages: {
+    PANIC: "PANIC! Immediate assistance required at my location.",
+    SENSOR: "Sensor triggered in my zone. Please verify.",
+    NS_PANIC:
+      "Non-specific alert: suspicious activity reported in the area. Sender identity withheld (anti-retaliation).",
+    UNKNOWN: "Unknown alert reported in the zone.",
+    WELLNESS_CHECK: "Wellness check: please confirm you are safe and well.",
+  },
+  memberJoinWelcome: "",
+};
+
+export function mergeRemoteAppSettings(
+  raw?: RemoteAppSettings | null,
+): RemoteAppSettings {
+  return {
+    ...DEFAULT_REMOTE_APP_SETTINGS,
+    ...(raw ?? {}),
+    sharedNotification: {
+      ...DEFAULT_REMOTE_APP_SETTINGS.sharedNotification,
+      ...(raw?.sharedNotification ?? {}),
+    },
+    quickMessages: {
+      ...DEFAULT_REMOTE_APP_SETTINGS.quickMessages,
+      ...(raw?.quickMessages ?? {}),
+    },
+  };
+}
 
 export type UsernameAvailableResult = {
   username: string;
