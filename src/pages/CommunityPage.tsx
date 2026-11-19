@@ -8,6 +8,7 @@ import {
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { CommunityMap } from "../components/CommunityMap";
+import { PageHero } from "../components/PageHero";
 import {
   listCommunalIds,
   listMembersForCommunalId,
@@ -38,6 +39,7 @@ type CommunityPerson = {
   role?: string;
   online?: boolean;
   lastSeen?: string | null;
+  avatarUrl?: string | null;
   location: { latitude: number; longitude: number } | null;
   locationKind: "live" | "zone" | null;
   zoneNames: string[];
@@ -53,6 +55,7 @@ type CreatorInfo = {
   role?: string;
   online?: boolean;
   lastSeen?: string | null;
+  avatarUrl?: string | null;
   location: { latitude: number; longitude: number } | null;
   locationKind: "live" | "zone" | null;
   zoneNames: string[];
@@ -103,6 +106,7 @@ function joinedMemberToPerson(row: CommunalJoinedMember): CommunityPerson {
     role: row.role ?? undefined,
     online: row.online,
     lastSeen: row.lastSeen ?? null,
+    avatarUrl: row.avatar_url ?? null,
     location: row.location ?? null,
     locationKind: row.location ? "live" : null,
     zoneNames: [],
@@ -160,6 +164,7 @@ function buildCreatorInfo(
     role: member?.role,
     online: member?.online,
     lastSeen: member?.lastSeen,
+    avatarUrl: member?.avatar_url ?? null,
     location,
     locationKind,
     zoneNames,
@@ -411,7 +416,11 @@ export function CommunityPage() {
       : null;
   const creatorSelected = selection?.type === "creator";
 
+  const myAvatar = user?.avatar_url ?? user?.avatarUrl ?? null;
+
   const mapMembers = useMemo(() => {
+    const avatarFor = (id: string, fallback?: string | null) =>
+      meId && id === meId && myAvatar ? myAvatar : (fallback ?? null);
     const pins = people
       .filter((p) => p.location)
       .map((p) => ({
@@ -419,20 +428,26 @@ export function CommunityPage() {
         name: p.name,
         location: p.location,
         online: p.online === true,
+        avatarUrl: avatarFor(p.id, p.avatarUrl),
         selected: selection?.type === "user" && selection.id === p.id,
       }));
     // Creator is not a "user", but still get a map pin when located.
-    if (creator?.id && creator.location) {
+    if (
+      creator?.id &&
+      creator.location &&
+      !pins.some((pin) => pin.id === creator.id)
+    ) {
       pins.push({
         id: creator.id,
         name: creator.name,
         location: creator.location,
         online: creator.online === true,
+        avatarUrl: avatarFor(creator.id, creator.avatarUrl),
         selected: creatorSelected,
       });
     }
     return pins;
-  }, [people, selection, creator, creatorSelected]);
+  }, [people, selection, creator, creatorSelected, meId, myAvatar]);
 
   function focusPerson(
     person: Pick<CommunityPerson, "id" | "location">,
@@ -474,22 +489,26 @@ export function CommunityPage() {
     return <Navigate to="/login?next=/community" replace />;
   }
 
-  return (
-    <main className="community-page" id="main">
-      <div className="community-page__shell">
-        <header className="community-page__header">
-          <div className="community-page__heading">
-            <p className="community-page__eyebrow">Community</p>
-            <h1 className="community-page__title">
-              {communalId ? communalId : "No Communal ID yet"}
-            </h1>
-            <p className="community-page__lead">
-              {communalId
-                ? "Joined users and zones for this Communal ID."
-                : "Join or create a Communal ID to see shared zones here."}
-            </p>
-          </div>
+  const heroTitle =
+    authLoading || loading
+      ? "Community"
+      : communalId
+        ? communalId
+        : "No Communal ID yet";
+  const heroLead =
+    authLoading || loading
+      ? "Joined users and zones for your Communal ID."
+      : communalId
+        ? "Joined users and zones for this Communal ID."
+        : "Join or create a Communal ID to see shared zones here.";
 
+  return (
+    <main id="main">
+      <PageHero
+        eyebrow="Community"
+        title={heroTitle}
+        lead={heroLead}
+        aside={
           <div className="community-page__stats" aria-label="Community stats">
             <div className="community-stat">
               <span className="community-stat__value">{people.length}</span>
@@ -500,8 +519,11 @@ export function CommunityPage() {
               <span className="community-stat__label">Zones</span>
             </div>
           </div>
-        </header>
+        }
+      />
 
+      <section className="page-section page-section--tint" aria-label="Community workspace">
+        <div className="container community-page">
         {authLoading || loading ? (
           <p className="community-page__status">Loading community…</p>
         ) : null}
@@ -876,7 +898,8 @@ export function CommunityPage() {
             </section>
           </div>
         )}
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
