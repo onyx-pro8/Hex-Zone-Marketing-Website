@@ -169,6 +169,7 @@ function initialsFor(name: string): string {
 
 function messagesCluster(a: InboxMessage, b: InboxMessage): boolean {
   if (a.type === "SERVICE" || b.type === "SERVICE") return false;
+  if (String(a.type).trim().toUpperCase() !== String(b.type).trim().toUpperCase()) return false;
   if (a.senderId == null || a.senderId !== b.senderId) return false;
   if (messageDay(a.createdAt) !== messageDay(b.createdAt)) return false;
   const left = new Date(a.createdAt).getTime();

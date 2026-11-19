@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/useAuth";
 import {
   getMembers,
   listNetworkAdmins,
+  listTechnicalSupport,
   setMemberActive,
   type Member,
 } from "../../lib/api/members";
@@ -36,6 +37,25 @@ function applyLivePresence(rows: Member[]): Member[] {
   return changed ? next : rows;
 }
 
+function roleLabel(member: Member): string {
+  const staff = String(member.platform_staff_role ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  if (staff === "technical_support" || staff === "tech_support") {
+    return "Technical Support";
+  }
+  if (
+    String(member.role ?? "").toLowerCase() === "administrator" &&
+    String(member.account_type ?? "").trim().toLowerCase() === "private"
+  ) {
+    return "System Admin";
+  }
+  if (member.role === "administrator") return "Administrator";
+  if (member.role === "user") return "User";
+  return member.role ?? "";
+}
+
 function PresenceBadge({ online }: { online?: boolean }) {
   const isOnline = online === true;
   return (
@@ -61,13 +81,21 @@ export function MembersWorkspace() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [memberResult, adminResult] = await Promise.all([
+    const [memberResult, adminResult, supportResult] = await Promise.all([
       getMembers(),
       listNetworkAdmins(),
+      listTechnicalSupport(),
     ]);
     if (memberResult.error) setError(memberResult.error);
     else setError("");
-    setMembers(applyLivePresence(memberResult.data ?? []));
+    const supportIds = new Set((supportResult.data ?? []).map((row) => row.id));
+    setMembers(
+      applyLivePresence(memberResult.data ?? []).map((row) =>
+        supportIds.has(row.id)
+          ? { ...row, platform_staff_role: "technical_support" }
+          : row,
+      ),
+    );
     setAdmins(applyLivePresence(adminResult.error ? [] : (adminResult.data ?? [])));
     setLoading(false);
   }, []);
@@ -223,7 +251,7 @@ export function MembersWorkspace() {
                       <span className="community-list__meta">
                         {[
                           accountTypeLabel(member.account_type),
-                          member.role,
+                          roleLabel(member),
                           member.zone_id,
                           isActive ? "Active" : "Inactive",
                         ]

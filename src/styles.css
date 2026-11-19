@@ -303,6 +303,11 @@ p {
 }
 
 /* ---------- Buttons ---------- */
+.btn.btn--compact {
+  --btn-h: 36px;
+  --btn-px: 14px;
+  --btn-fs: 13px;
+}
 .btn {
   --btn-h: 48px;
   --btn-px: 28px;
@@ -4463,6 +4468,10 @@ p {
 }
 .dash-panel {
   max-height: min(52dvh, 520px);
+}
+.dash-permission-list {
+  max-height: min(560px, calc(100dvh - 320px));
+  overflow: auto;
 }
 .dash-card {
   display: grid;

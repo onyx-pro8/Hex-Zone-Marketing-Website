@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { AddressAutocompleteInput } from "../components/AddressAutocompleteInput";
+import { PermissionWorkspace } from "../components/dashboard/PermissionWorkspace";
 import { useAuth } from "../auth/useAuth";
 import {
   checkUsernameAvailable,
@@ -96,6 +97,12 @@ export function AccountPage() {
   const previewSrc = useAuthenticatedAvatarSrc(avatarUrl);
   const accountType = user?.accountType ?? user?.account_type;
   const systemAccount = String(accountType ?? "").toUpperCase() === "PRIVATE";
+  const canGrantPermission =
+    systemAccount &&
+    String(user?.role ?? "").toLowerCase() === "administrator" &&
+    String(user?.platform_staff_role ?? user?.platformStaffRole ?? "none")
+      .toLowerCase()
+      .replace(/[\s-]+/g, "_") !== "technical_support";
   const roleLabel =
     String(user?.role ?? "").toLowerCase() === "administrator"
       ? "Administrator"
@@ -580,6 +587,15 @@ export function AccountPage() {
             </button>
           </form>
         </section>
+
+        {canGrantPermission ? (
+          <section className="settings-section" aria-labelledby="permission-title">
+            <h2 className="settings-section__title" id="permission-title">
+              Permission
+            </h2>
+            <PermissionWorkspace />
+          </section>
+        ) : null}
 
         <section
           className="settings-section"
