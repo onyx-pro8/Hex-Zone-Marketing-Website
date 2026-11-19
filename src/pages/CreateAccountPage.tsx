@@ -1,4 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
+
+function generateZoneId(): string {
+  return `Network-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+}
 import { Link, useNavigate } from "react-router-dom";
 import { AddressAutocompleteInput } from "../components/AddressAutocompleteInput";
 import { AuthSplit } from "../components/AuthSplit";
@@ -20,6 +24,7 @@ export function CreateAccountPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [address, setAddress] = useState("");
+  const [zoneId, setZoneId] = useState(() => generateZoneId());
   const [communalId, setCommunalId] = useState("");
   const [communalValidated, setCommunalValidated] = useState(false);
   const [communalRows, setCommunalRows] = useState<CommunalIdRow[]>([]);
@@ -73,6 +78,11 @@ export function CreateAccountPage() {
     event.preventDefault();
     setError("");
 
+    const networkId = zoneId.trim();
+    if (!networkId) {
+      setError("Enter or generate a network ID.");
+      return;
+    }
     const communal = communalId.trim().toUpperCase();
     if (communal && !communalValidated) {
       setError(
@@ -91,6 +101,7 @@ export function CreateAccountPage() {
         registrationType: "USER",
         address: address.trim() || undefined,
         phone: phone.trim() || undefined,
+        zoneId: networkId,
         ...(communal ? { communalId: communal } : {}),
       });
       navigate("/login?next=/pricing");
@@ -228,6 +239,34 @@ export function CreateAccountPage() {
               onChange={(next) => setAddress(next)}
               hint="Start typing and pick a suggestion."
             />
+
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="reg-network">
+            Network ID
+          </label>
+          <p className="auth-hint">
+            Saved on your account and shown on the members list. This is not
+            your email.
+          </p>
+          <div className="auth-input-row">
+            <input
+              id="reg-network"
+              className="auth-input"
+              value={zoneId}
+              onChange={(e) => setZoneId(e.target.value.toUpperCase())}
+              placeholder="Network-ABC123"
+              autoCapitalize="characters"
+              required
+            />
+            <button
+              className="auth-reveal"
+              type="button"
+              onClick={() => setZoneId(generateZoneId())}
+            >
+              New
+            </button>
+          </div>
+        </div>
 
         <div className="auth-field">
           <label className="auth-label" htmlFor="reg-communal">

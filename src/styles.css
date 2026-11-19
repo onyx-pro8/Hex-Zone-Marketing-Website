@@ -2409,6 +2409,7 @@ p {
    ========================================================================== */
 .page-hero {
   position: relative;
+  z-index: 2;
   color: var(--on-dark);
   background:
     radial-gradient(
@@ -3779,10 +3780,95 @@ p {
   display: grid;
   gap: 20px;
 }
+.community-hero-aside {
+  display: grid;
+  gap: 14px;
+  justify-items: end;
+}
+.community-picker {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+.community-picker__label {
+  font: 700 11px/1.2 var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-dark-3);
+}
+.community-picker__button {
+  position: relative;
+  min-width: 220px;
+  height: 44px;
+  padding: 0 36px 0 14px;
+  border: 1px solid rgba(190, 215, 255, 0.28);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: 600 14px/1 var(--font-body);
+  text-align: left;
+}
+.community-picker__button::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 18px;
+  border: 5px solid transparent;
+  border-top-color: #dbe5f7;
+}
+.community-picker.is-open .community-picker__button::after {
+  top: 12px;
+  border-top-color: transparent;
+  border-bottom-color: #dbe5f7;
+}
+.community-picker__button:focus-visible {
+  outline: 2px solid rgba(47, 213, 255, 0.7);
+  outline-offset: 2px;
+}
+.community-picker__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 6;
+  min-width: 100%;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid rgba(190, 215, 255, 0.22);
+  border-radius: var(--radius-md);
+  background: #071428;
+  box-shadow: 0 18px 40px -16px rgba(2, 8, 22, 0.85);
+}
+.community-picker__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #fff;
+  text-align: left;
+}
+.community-picker__option:hover,
+.community-picker__option.is-selected {
+  background: rgba(47, 123, 255, 0.22);
+}
+.community-picker__id {
+  font: 700 14px/1.2 var(--font-body);
+}
+.community-picker__meta {
+  color: var(--on-dark-3);
+  font: 600 12px/1 var(--font-body);
+  white-space: nowrap;
+}
 .community-page__stats {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: flex-end;
 }
 .community-stat {
   min-width: 108px;

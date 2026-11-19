@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   memberPresenceSnapshot,
   parseMemberPresenceEvent,
@@ -67,22 +67,45 @@ type Selection =
   | { type: "creator" }
   | null;
 
-function resolveCommunalId(
-  profileId: string | null | undefined,
+function normalizeCommunalId(value: string | null | undefined): string {
+  return String(value ?? "").trim().toUpperCase();
+}
+
+/** IDs this account created, plus the one they joined on their profile. */
+function communalOptionsForUser(
   rows: CommunalIdRow[],
-  networkId: string | null | undefined,
+  userId: string | null,
+  profileId: string | null | undefined,
+): CommunalIdRow[] {
+  const joined = normalizeCommunalId(profileId);
+  const seen = new Set<string>();
+  const options: CommunalIdRow[] = [];
+  for (const row of rows) {
+    const referenceId = normalizeCommunalId(row.reference_id);
+    if (!referenceId || seen.has(referenceId)) continue;
+    const createdByUser =
+      userId != null &&
+      row.creator_id != null &&
+      String(row.creator_id) === userId;
+    if (!createdByUser && referenceId !== joined) continue;
+    seen.add(referenceId);
+    options.push({ ...row, reference_id: referenceId });
+  }
+  options.sort((a, b) => a.reference_id.localeCompare(b.reference_id));
+  return options;
+}
+
+function chooseCommunalId(
+  current: string | null,
+  options: CommunalIdRow[],
+  profileId: string | null | undefined,
 ): string | null {
-  const fromProfile = String(profileId ?? "").trim().toUpperCase();
-  if (fromProfile) return fromProfile;
-  const network = String(networkId ?? "").trim();
-  if (!network) return null;
-  const owned = rows.find(
-    (row) =>
-      String(row.network_id ?? "").trim() === network &&
-      String(row.reference_id ?? "").trim(),
-  );
-  const ref = String(owned?.reference_id ?? "").trim().toUpperCase();
-  return ref || null;
+  if (options.length === 0) return null;
+  const currentId = normalizeCommunalId(current);
+  if (options.some((row) => row.reference_id === currentId)) return currentId;
+  const joined = normalizeCommunalId(profileId);
+  const preferred = options.find((row) => row.reference_id === joined);
+  return (preferred ?? options[0])!.reference_id;
 }
 
 function zoneOwnerId(zone: CommunalZone): string | null {
@@ -190,6 +213,89 @@ function withLivePresence<T extends { id: string; online?: boolean }>(rows: T[])
   return changed ? next : rows;
 }
 
+function CommunalIdPicker({
+  options,
+  value,
+  onChange,
+}: {
+  options: CommunalIdRow[];
+  value: string | null;
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const current =
+    options.find((row) => row.reference_id === value) ?? options[0];
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointer(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div
+      className={`community-picker${open ? " is-open" : ""}`}
+      ref={rootRef}
+    >
+      <span className="community-picker__label" id="communal-picker-label">
+        Communal ID
+      </span>
+      <button
+        type="button"
+        className="community-picker__button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-labelledby="communal-picker-label"
+        onClick={() => setOpen((currentOpen) => !currentOpen)}
+      >
+        {current?.reference_id ?? "Select"}
+      </button>
+      {open ? (
+        <ul
+          className="community-picker__menu"
+          role="listbox"
+          aria-labelledby="communal-picker-label"
+        >
+          {options.map((row) => {
+            const selected = row.reference_id === value;
+            const zones = row.zone_count ?? 0;
+            return (
+              <li key={row.reference_id} role="none">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  className={`community-picker__option${selected ? " is-selected" : ""}`}
+                  onClick={() => {
+                    onChange(row.reference_id);
+                    setOpen(false);
+                  }}
+                >
+                  <span className="community-picker__id">{row.reference_id}</span>
+                  <span className="community-picker__meta">
+                    {zones} zone{zones === 1 ? "" : "s"}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 function PresenceBadge({ online }: { online?: boolean }) {
   const isOnline = online === true;
   return (
@@ -211,7 +317,9 @@ export function CommunityPage() {
     [],
   );
   const [networkMembers, setNetworkMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [pickedCommunalId, setPickedCommunalId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [selection, setSelection] = useState<Selection>(null);
   const [focus, setFocus] = useState<MapFocusTarget | null>(null);
@@ -219,83 +327,92 @@ export function CommunityPage() {
   const [socketOpen, setSocketOpen] = useState(false);
 
   const meId = user?.id != null ? String(user.id) : null;
-  const networkId =
-    user?.zoneId ?? (user?.zone_id != null ? String(user.zone_id) : null);
-  const communalId = useMemo(
-    () =>
-      resolveCommunalId(
-        user?.communalId ?? user?.communal_id,
-        communalRows,
-        networkId,
-      ),
-    [user?.communalId, user?.communal_id, communalRows, networkId],
+  const profileCommunalId = user?.communalId ?? user?.communal_id;
+  const communalOptions = useMemo(
+    () => communalOptionsForUser(communalRows, meId, profileCommunalId),
+    [communalRows, meId, profileCommunalId],
   );
+  const communalId = pickedCommunalId;
 
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
 
-    async function load(isRefresh = false) {
+    async function loadCatalog(isRefresh = false) {
       if (!isRefresh) {
-        setLoading(true);
+        setCatalogLoading(true);
         setError("");
       }
-
       const [communalRes, networkRes] = await Promise.all([
         listCommunalIds(),
         getMembers(),
       ]);
       if (cancelled) return;
-
       if (communalRes.error && !isRefresh) setError(communalRes.error);
-      setCommunalRows(communalRes.data ?? []);
+      const rows = communalRes.data ?? [];
+      setCommunalRows(rows);
       setNetworkMembers(withLivePresence(networkRes.data ?? []));
-
-      const resolved = resolveCommunalId(
-        user?.communalId ?? user?.communal_id,
-        communalRes.data ?? [],
-        networkId,
+      setPickedCommunalId((current) =>
+        chooseCommunalId(current, communalOptionsForUser(rows, meId, profileCommunalId), profileCommunalId),
       );
+      if (!isRefresh) setCatalogLoading(false);
+    }
 
-      if (!resolved) {
-        setZones([]);
-        setJoinedMembers([]);
-        if (!isRefresh) setLoading(false);
-        return;
+    void loadCatalog(socketEpoch > 0);
+    const timer = window.setInterval(() => {
+      void loadCatalog(true);
+    }, 20000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [token, meId, profileCommunalId, socketEpoch]);
+
+  useEffect(() => {
+    if (!token || !communalId) {
+      setZones([]);
+      setJoinedMembers([]);
+      setDetailLoading(false);
+      return;
+    }
+    let cancelled = false;
+
+    async function loadDetail(isRefresh = false) {
+      if (!isRefresh) {
+        setDetailLoading(true);
+        setError("");
       }
-
       const [zonesRes, joinedRes] = await Promise.all([
-        listZonesForCommunalId(resolved),
-        listMembersForCommunalId(resolved),
+        listZonesForCommunalId(communalId!),
+        listMembersForCommunalId(communalId!),
       ]);
       if (cancelled) return;
-
       if (zonesRes.error) {
-        if (!isRefresh) setError(zonesRes.error);
-        if (!isRefresh) setZones([]);
+        if (!isRefresh) {
+          setError(zonesRes.error);
+          setZones([]);
+        }
       } else {
         setZones(zonesRes.data ?? []);
       }
-
       if (joinedRes.error) {
         if (!isRefresh && !zonesRes.error) setError(joinedRes.error);
         if (!isRefresh) setJoinedMembers([]);
       } else {
         setJoinedMembers(withLivePresence(joinedRes.data ?? []));
       }
-      if (!isRefresh) setLoading(false);
+      if (!isRefresh) setDetailLoading(false);
     }
 
-    void load(socketEpoch > 0);
+    void loadDetail(false);
     const timer = window.setInterval(() => {
-      void load(true);
+      void loadDetail(true);
     }, 20000);
-
     return () => {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [token, user?.communalId, user?.communal_id, networkId, socketEpoch]);
+  }, [token, communalId]);
 
   useEffect(() => {
     return subscribeRealtimeStatus((status) => {
@@ -399,20 +516,13 @@ export function CommunityPage() {
     return info;
   }, [registryMeta, networkMembers, zones, socketOpen, meId]);
 
-  const otherZones = useMemo(() => {
-    return mapZones.filter((zone) => {
-      const ownerId = zoneOwnerId(zone.raw);
-      return !meId || ownerId !== meId;
-    });
-  }, [mapZones, meId]);
-
   const selectedPerson =
     selection?.type === "user"
       ? (people.find((p) => p.id === selection.id) ?? null)
       : null;
   const selectedZone =
     selection?.type === "zone"
-      ? (otherZones.find((z) => z.id === selection.id) ?? null)
+      ? (mapZones.find((z) => z.id === selection.id) ?? null)
       : null;
   const creatorSelected = selection?.type === "creator";
 
@@ -485,22 +595,34 @@ export function CommunityPage() {
     setFocus(focusTargetForZone(zone));
   }
 
+  function selectCommunalId(nextId: string) {
+    const id = normalizeCommunalId(nextId);
+    if (!id || id === communalId) return;
+    setPickedCommunalId(id);
+    setSelection(null);
+    setFocus(null);
+    setZones([]);
+    setJoinedMembers([]);
+  }
+
   if (!authLoading && !token) {
     return <Navigate to="/login?next=/community" replace />;
   }
 
+  const loading = catalogLoading || detailLoading;
   const heroTitle =
-    authLoading || loading
+    catalogLoading && !communalId
       ? "Community"
       : communalId
         ? communalId
         : "No Communal ID yet";
-  const heroLead =
-    authLoading || loading
+  const heroLead = communalId
+    ? communalOptions.length > 1
+      ? "Choose a Communal ID to see its joined users and zones."
+      : "Joined users and zones for this Communal ID."
+    : catalogLoading
       ? "Joined users and zones for your Communal ID."
-      : communalId
-        ? "Joined users and zones for this Communal ID."
-        : "Join or create a Communal ID to see shared zones here.";
+      : "Join or create a Communal ID to see shared zones here.";
 
   return (
     <main id="main">
@@ -509,14 +631,23 @@ export function CommunityPage() {
         title={heroTitle}
         lead={heroLead}
         aside={
-          <div className="community-page__stats" aria-label="Community stats">
-            <div className="community-stat">
-              <span className="community-stat__value">{people.length}</span>
-              <span className="community-stat__label">Joined users</span>
-            </div>
-            <div className="community-stat">
-              <span className="community-stat__value">{otherZones.length}</span>
-              <span className="community-stat__label">Zones</span>
+          <div className="community-hero-aside">
+            {communalOptions.length > 0 ? (
+              <CommunalIdPicker
+                options={communalOptions}
+                value={communalId}
+                onChange={selectCommunalId}
+              />
+            ) : null}
+            <div className="community-page__stats" aria-label="Community stats">
+              <div className="community-stat">
+                <span className="community-stat__value">{people.length}</span>
+                <span className="community-stat__label">Joined users</span>
+              </div>
+              <div className="community-stat">
+                <span className="community-stat__value">{mapZones.length}</span>
+                <span className="community-stat__label">Zones</span>
+              </div>
             </div>
           </div>
         }
@@ -533,12 +664,12 @@ export function CommunityPage() {
           </p>
         ) : null}
 
-        {!authLoading && !loading && !communalId ? (
+        {!communalId ? (
+          !authLoading && !catalogLoading ? (
           <div className="community-empty">
             <p>
-              Your account is not linked to a Communal ID yet. Individual
-              accounts can pick one at signup; network admins create them when
-              defining primary zones in the app.
+              You have not created or joined a Communal ID yet. Create one
+              from a primary zone in the app, or join one when you sign up.
             </p>
             <div className="community-empty__actions">
               <Link className="btn btn--primary" to="/account">
@@ -549,6 +680,7 @@ export function CommunityPage() {
               </Link>
             </div>
           </div>
+          ) : null
         ) : (
           <div className="community-workspace">
             <div className="community-workspace__main">
@@ -686,16 +818,16 @@ export function CommunityPage() {
                     Zones
                   </h2>
                   <span className="community-panel__count">
-                    {otherZones.length}
+                    {mapZones.length}
                   </span>
                 </div>
-                {otherZones.length === 0 ? (
+                {mapZones.length === 0 ? (
                   <p className="community-panel__empty">
-                    No other zones attached to this Communal ID.
+                    No zones attached to this Communal ID.
                   </p>
                 ) : (
                   <ul className="community-list" role="list">
-                    {otherZones.map((zone) => {
+                    {mapZones.map((zone) => {
                       const active =
                         selection?.type === "zone" && selection.id === zone.id;
                       return (
