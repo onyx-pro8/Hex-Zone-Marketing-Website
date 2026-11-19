@@ -10,6 +10,7 @@ import {
   TileLayer,
   Tooltip,
   useMap,
+  useMapEvents,
 } from "react-leaflet";
 import { initialsFor, useAuthenticatedAvatarSrc } from "../lib/avatar";
 import type { Member } from "../lib/api/members";
@@ -42,6 +43,8 @@ type CommunityMapProps = {
   focus?: MapFocusTarget | null;
   selectedZoneId?: string | null;
   selectedMemberId?: string | null;
+  draftCircle?: { center: LatLng; radiusMeters: number } | null;
+  onMapClick?: (point: LatLng) => void;
 };
 
 function FitAll({ points }: { points: LatLng[] }) {
@@ -352,6 +355,20 @@ function MemberPins({
   );
 }
 
+function MapClickCapture({
+  onMapClick,
+}: {
+  onMapClick?: (point: LatLng) => void;
+}) {
+  useMapEvents({
+    click(event) {
+      if (!onMapClick) return;
+      onMapClick([event.latlng.lat, event.latlng.lng]);
+    },
+  });
+  return null;
+}
+
 function InvalidateSize() {
   const map = useMap();
   useEffect(() => {
@@ -367,6 +384,8 @@ export function CommunityMap({
   focus,
   selectedZoneId,
   selectedMemberId,
+  draftCircle,
+  onMapClick,
 }: CommunityMapProps) {
   const memberPoints = members
     .map((member) => {
@@ -380,7 +399,7 @@ export function CommunityMap({
   const center = fitPoints[0] ?? DEFAULT_CENTER;
 
   return (
-    <div className="community-map">
+    <div className={`community-map${onMapClick ? " community-map--pick" : ""}`}>
       <MapContainer
         center={center}
         zoom={13}
@@ -388,6 +407,7 @@ export function CommunityMap({
         className="community-map__leaflet"
       >
         <InvalidateSize />
+        <MapClickCapture onMapClick={onMapClick} />
         {!focus && fitPoints.length > 0 ? <FitAll points={fitPoints} /> : null}
         <FocusController focus={focus} />
         <TileLayer
@@ -450,6 +470,22 @@ export function CommunityMap({
             </Fragment>
           );
         })}
+
+        {draftCircle ? (
+          <Circle
+            center={draftCircle.center}
+            radius={draftCircle.radiusMeters}
+            pathOptions={{
+              color: "#1652d6",
+              weight: 2,
+              dashArray: "6 4",
+              fillColor: "#1652d6",
+              fillOpacity: 0.16,
+            }}
+          >
+            <Tooltip sticky>New zone</Tooltip>
+          </Circle>
+        ) : null}
 
         <MemberPins members={members} selectedMemberId={selectedMemberId} />
       </MapContainer>

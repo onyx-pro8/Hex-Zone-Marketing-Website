@@ -13,6 +13,7 @@ export type Member = {
   location?: { latitude: number; longitude: number } | null;
   zones?: string[];
   role?: "administrator" | "user" | string;
+  platform_staff_role?: string | null;
   active?: boolean;
   online?: boolean;
   avatar_url?: string | null;
@@ -86,6 +87,12 @@ function normalizeMember(raw: unknown): Member | null {
       ? row.zones.filter((z): z is string => typeof z === "string")
       : [],
     role: typeof row.role === "string" ? row.role : undefined,
+    platform_staff_role:
+      typeof row.platform_staff_role === "string"
+        ? row.platform_staff_role
+        : typeof row.platformStaffRole === "string"
+          ? row.platformStaffRole
+          : null,
     active: typeof row.active === "boolean" ? row.active : true,
     online: typeof row.online === "boolean" ? row.online : false,
     avatar_url:
@@ -121,5 +128,74 @@ export async function updateMemberLocation(payload: {
     method: "POST",
     path: "/members/location",
     body: payload,
+  });
+}
+
+export async function listNetworkAdmins() {
+  const result = await request<unknown>({
+    method: "GET",
+    path: "/owners/network-admins",
+  });
+  const rows = Array.isArray(result.data) ? result.data : [];
+  return {
+    ...result,
+    data: rows
+      .map(normalizeMember)
+      .filter((member): member is Member => Boolean(member)),
+  };
+}
+
+export async function setMemberActive(memberId: string | number, active: boolean) {
+  return request<unknown>({
+    method: "PATCH",
+    path: `/owners/${encodeURIComponent(String(memberId))}`,
+    body: { active },
+  });
+}
+
+export async function setMemberAccountType(
+  memberId: string | number,
+  accountType: string,
+) {
+  return request<unknown>({
+    method: "PATCH",
+    path: `/owners/${encodeURIComponent(String(memberId))}`,
+    body: { account_type: accountType },
+  });
+}
+
+export async function listTechnicalSupport() {
+  const result = await request<unknown>({
+    method: "GET",
+    path: "/owners/technical-support",
+  });
+  const rows = Array.isArray(result.data) ? result.data : [];
+  return {
+    ...result,
+    data: rows
+      .map(normalizeMember)
+      .filter((member): member is Member => Boolean(member)),
+  };
+}
+
+export async function setPlatformStaffRole(
+  memberId: string | number,
+  role: "technical_support" | "none",
+) {
+  return request<Member>({
+    method: "PUT",
+    path: `/owners/${encodeURIComponent(String(memberId))}/platform-staff`,
+    body: { role },
+  });
+}
+
+export async function setMemberRole(
+  memberId: string | number,
+  role: "administrator" | "user",
+) {
+  return request<unknown>({
+    method: "PATCH",
+    path: `/owners/${encodeURIComponent(String(memberId))}`,
+    body: { role },
   });
 }

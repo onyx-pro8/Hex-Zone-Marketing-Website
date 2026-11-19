@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { isPrivateAccount } from "../lib/privateAccount";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 import { UserAccountMenu } from "./UserAccountMenu";
@@ -27,6 +28,7 @@ export function SiteHeader() {
   const [openMenu, setOpenMenu] = useState<NavKey>(null);
   const headerRef = useRef<HTMLElement>(null);
   const signedIn = Boolean(token && user);
+  const privateAccount = isPrivateAccount(user);
 
   useEffect(() => {
     function onDocumentClick(event: MouseEvent) {
@@ -72,18 +74,19 @@ export function SiteHeader() {
 
         <nav className="site-header__nav" id="site-menu" popover="" aria-label="Primary">
           <ul className="site-header__links" role="list">
-            <li>
-              <NavLink
-                className={({ isActive }) =>
-                  `site-header__link${isActive ? " is-active" : ""}`
-                }
-                to="/"
-                end
-                onClick={closeMenu}
-              >
-                Home
-              </NavLink>
-            </li>
+            {privateAccount ? (
+              <li>
+                <NavLink
+                  className={({ isActive }) =>
+                    `site-header__link${isActive ? " is-active" : ""}`
+                  }
+                  to="/dashboard"
+                  onClick={closeMenu}
+                >
+                  Dashboard
+                </NavLink>
+              </li>
+            ) : null}
 
             <li className={`nav-item${openMenu === "product" ? " is-open" : ""}`}>
               <button
