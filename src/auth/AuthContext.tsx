@@ -18,6 +18,7 @@ import {
   type RegisterPayload,
   type RegistrationType,
 } from "../lib/api";
+import { useMarketingRealtime } from "../lib/realtime";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -142,6 +143,7 @@ function isExpired(token: string): boolean {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => getStoredToken());
+  useMarketingRealtime(token);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(Boolean(getStoredToken()));
 

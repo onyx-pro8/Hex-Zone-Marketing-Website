@@ -1,4 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  memberPresenceSnapshot,
+  parseMemberPresenceEvent,
+  subscribeRealtimeMessages,
+  subscribeRealtimeStatus,
+} from "../lib/realtime";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { CommunityMap } from "../components/CommunityMap";
@@ -164,6 +170,21 @@ function formatCoord(value: number): string {
   return value.toFixed(5);
 }
 
+function withLivePresence<T extends { id: string; online?: boolean }>(rows: T[]): T[] {
+  const snap = memberPresenceSnapshot();
+  if (snap.size === 0) return rows;
+  let changed = false;
+  const next = rows.map((row) => {
+    const id = Number(row.id);
+    if (!snap.has(id)) return row;
+    const online = snap.get(id) === true;
+    if (row.online === online) return row;
+    changed = true;
+    return { ...row, online };
+  });
+  return changed ? next : rows;
+}
+
 function PresenceBadge({ online }: { online?: boolean }) {
   const isOnline = online === true;
   return (
@@ -189,6 +210,8 @@ export function CommunityPage() {
   const [error, setError] = useState("");
   const [selection, setSelection] = useState<Selection>(null);
   const [focus, setFocus] = useState<MapFocusTarget | null>(null);
+  const [socketEpoch, setSocketEpoch] = useState(0);
+  const [socketOpen, setSocketOpen] = useState(false);
 
   const meId = user?.id != null ? String(user.id) : null;
   const networkId =
@@ -221,7 +244,7 @@ export function CommunityPage() {
 
       if (communalRes.error && !isRefresh) setError(communalRes.error);
       setCommunalRows(communalRes.data ?? []);
-      setNetworkMembers(networkRes.data ?? []);
+      setNetworkMembers(withLivePresence(networkRes.data ?? []));
 
       const resolved = resolveCommunalId(
         user?.communalId ?? user?.communal_id,
@@ -253,12 +276,12 @@ export function CommunityPage() {
         if (!isRefresh && !zonesRes.error) setError(joinedRes.error);
         if (!isRefresh) setJoinedMembers([]);
       } else {
-        setJoinedMembers(joinedRes.data ?? []);
+        setJoinedMembers(withLivePresence(joinedRes.data ?? []));
       }
       if (!isRefresh) setLoading(false);
     }
 
-    void load(false);
+    void load(socketEpoch > 0);
     const timer = window.setInterval(() => {
       void load(true);
     }, 20000);
@@ -267,7 +290,34 @@ export function CommunityPage() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [token, user?.communalId, user?.communal_id, networkId]);
+  }, [token, user?.communalId, user?.communal_id, networkId, socketEpoch]);
+
+  useEffect(() => {
+    return subscribeRealtimeStatus((status) => {
+      const open = status === "open";
+      setSocketOpen(open);
+      if (open) setSocketEpoch((n) => n + 1);
+    });
+  }, []);
+
+  useEffect(() => {
+    return subscribeRealtimeMessages((raw) => {
+      const evt = parseMemberPresenceEvent(raw);
+      if (!evt) return;
+      const id = String(evt.ownerId);
+      const patch = <T extends { id: string; online?: boolean }>(rows: T[]): T[] => {
+        let changed = false;
+        const next = rows.map((row) => {
+          if (row.id !== id || row.online === evt.online) return row;
+          changed = true;
+          return { ...row, online: evt.online };
+        });
+        return changed ? next : rows;
+      };
+      setJoinedMembers(patch);
+      setNetworkMembers(patch);
+    });
+  }, []);
 
   // Publish this browser's GPS so presence/location stay fresh while viewing.
   useEffect(() => {
@@ -311,12 +361,14 @@ export function CommunityPage() {
   );
 
   const people = useMemo(() => {
+    const snap = memberPresenceSnapshot();
     const rows = joinedMembers.map((row) => {
       const person = joinedMemberToPerson(row);
-      // Marketing has no app WebSocket — treat the viewer as online here.
-      if (meId && person.id === meId) {
+      if (socketOpen && meId && person.id === meId) {
         return { ...person, online: true };
       }
+      const id = Number(person.id);
+      if (snap.has(id)) return { ...person, online: snap.get(id) === true };
       return person;
     });
     // Put the signed-in user first when they are a joined member.
@@ -326,15 +378,21 @@ export function CommunityPage() {
       return a.name.localeCompare(b.name);
     });
     return rows;
-  }, [joinedMembers, meId]);
+  }, [joinedMembers, meId, socketOpen]);
 
   const creator = useMemo(() => {
     const info = buildCreatorInfo(registryMeta, networkMembers, zones);
-    if (info && meId && info.id === meId) {
+    if (!info) return info;
+    if (socketOpen && meId && info.id === meId) {
       return { ...info, online: true };
     }
+    const snap = memberPresenceSnapshot();
+    const id = Number(info.id);
+    if (info.id && snap.has(id)) {
+      return { ...info, online: snap.get(id) === true };
+    }
     return info;
-  }, [registryMeta, networkMembers, zones, meId]);
+  }, [registryMeta, networkMembers, zones, socketOpen, meId]);
 
   const otherZones = useMemo(() => {
     return mapZones.filter((zone) => {
