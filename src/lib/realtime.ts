@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { API_BASE_URL, getStoredToken } from "./api/client";
+import { ensureWebSessionOnline, markWebSessionOffline } from "./sessionDevice";
 
 export type WebSocketStatus = "connecting" | "open" | "closed";
 
@@ -241,9 +242,18 @@ export function useMarketingRealtime(token: string | null): void {
     shared.activeUsers += 1;
     setToken(token);
     if (token) connectSocket();
+    let presenceTimer: number | null = null;
+    if (token) {
+      void ensureWebSessionOnline();
+      presenceTimer = window.setInterval(() => {
+        void ensureWebSessionOnline();
+      }, 20000);
+    }
     return () => {
+      if (presenceTimer != null) window.clearInterval(presenceTimer);
       shared.activeUsers = Math.max(0, shared.activeUsers - 1);
       if (shared.activeUsers === 0) {
+        if (token) void markWebSessionOffline(token);
         shared.token = null;
         shared.presence.clear();
         closeSocket();

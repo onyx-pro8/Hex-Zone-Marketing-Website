@@ -3,9 +3,7 @@ import { useAuth } from "../../auth/useAuth";
 import {
   getMembers,
   listNetworkAdmins,
-  setMemberAccountType,
   setMemberActive,
-  setMemberRole,
   type Member,
 } from "../../lib/api/members";
 import {
@@ -13,12 +11,7 @@ import {
   parseMemberPresenceEvent,
   subscribeRealtimeMessages,
 } from "../../lib/realtime";
-import {
-  ASSIGNABLE_ACCOUNT_TYPES,
-  accountTypeLabel,
-  normalizeAccountType,
-  toApiAccountType,
-} from "../../lib/privateAccount";
+import { accountTypeLabel } from "../../lib/privateAccount";
 
 type Filter = "same-zone" | "all" | "admins";
 
@@ -59,13 +52,9 @@ export function MembersWorkspace() {
   const [admins, setAdmins] = useState<Member[]>([]);
   const [filter, setFilter] = useState<Filter>("same-zone");
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
-  const [managing, setManaging] = useState<Member | null>(null);
-  const [accountType, setAccountType] = useState("EXCLUSIVE");
-  const [role, setRole] = useState<"administrator" | "user">("user");
-  const [active, setActive] = useState(true);
 
   const myZoneId = String(user?.zoneId ?? user?.zone_id ?? "").trim();
   const myId = String(user?.id ?? "").trim();
@@ -114,89 +103,39 @@ export function MembersWorkspace() {
   const visible =
     filter === "admins" ? admins : filter === "same-zone" ? sameZoneMembers : members;
 
-  function openManage(member: Member) {
-    setManaging(member);
-    setAccountType(normalizeAccountType(member.account_type) || "EXCLUSIVE");
-    setRole(
-      String(member.role ?? "").toLowerCase() === "administrator"
-        ? "administrator"
-        : "user",
-    );
-    setActive(member.active !== false);
-    setStatus("");
+  async function toggleActive(member: Member, next: boolean) {
+    const previous = member.active !== false;
+    if (next === previous || pendingId) return;
+    setPendingId(member.id);
     setError("");
-  }
-
-  async function saveManaged() {
-    if (!managing) return;
-    setBusy(true);
-    setError("");
-    const prevType = normalizeAccountType(managing.account_type);
-    const prevRole =
-      String(managing.role ?? "").toLowerCase() === "administrator"
-        ? "administrator"
-        : "user";
-    const prevActive = managing.active !== false;
-
-    if (role !== prevRole) {
-      const result = await setMemberRole(managing.id, role);
-      if (result.error) {
-        setBusy(false);
-        setError(result.error);
-        return;
-      }
-    }
-    if (accountType !== prevType) {
-      const result = await setMemberAccountType(
-        managing.id,
-        toApiAccountType(accountType),
-      );
-      if (result.error) {
-        setBusy(false);
-        setError(result.error);
-        return;
-      }
-    }
-    if (active !== prevActive) {
-      const result = await setMemberActive(managing.id, active);
-      if (result.error) {
-        setBusy(false);
-        setError(result.error);
-        return;
-      }
-    }
-    setBusy(false);
-    setStatus("Member updated.");
-    setManaging(null);
-    await load();
-  }
-
-  async function toggleAdminAccess(member: Member) {
-    const restore = member.active === false;
-    const confirmed = window.confirm(
-      restore
-        ? "Restore this network admin so they can sign in again?"
-        : "Suspend this network admin? They will be signed out and cannot sign in until restored.",
-    );
-    if (!confirmed) return;
-    setBusy(true);
-    setError("");
-    const result = await setMemberActive(member.id, restore);
-    setBusy(false);
+    const apply = (rows: Member[]) =>
+      rows.map((row) => (row.id === member.id ? { ...row, active: next } : row));
+    setMembers(apply);
+    setAdmins(apply);
+    const result = await setMemberActive(member.id, next);
+    setPendingId(null);
     if (result.error) {
+      const revert = (rows: Member[]) =>
+        rows.map((row) =>
+          row.id === member.id ? { ...row, active: previous } : row,
+        );
+      setMembers(revert);
+      setAdmins(revert);
       setError(result.error);
       return;
     }
-    setStatus(restore ? "Network admin restored." : "Network admin suspended.");
-    await load();
+    setStatus(
+      next
+        ? `${member.name} can sign in.`
+        : `${member.name} is inactive and cannot sign in.`,
+    );
   }
 
   return (
     <div className="dash-members">
       <p className="dash-hint">
-        Private account · unlimited members. Open All members and choose a user
-        to change their role, account type, or active status. Inactive users
-        cannot sign in.
+        Use the switch to let a member sign in. Role and account type stay as
+        they are. Inactive users cannot sign in.
         {myZoneId ? ` Your network is ${myZoneId}.` : ""}
       </p>
 
@@ -212,10 +151,7 @@ export function MembersWorkspace() {
             key={id}
             type="button"
             className={`dash-chip${filter === id ? " is-active" : ""}`}
-            onClick={() => {
-              setFilter(id);
-              setManaging(null);
-            }}
+            onClick={() => setFilter(id)}
           >
             {label}
           </button>
@@ -230,7 +166,7 @@ export function MembersWorkspace() {
       ) : null}
       {status ? <p className="dash-status">{status}</p> : null}
 
-      <div className="dash-layout dash-layout--members">
+      <div>
         <section className="community-panel dash-panel" aria-labelledby="dash-members-title">
           <div className="community-panel__head">
             <h2 className="community-panel__title" id="dash-members-title">
@@ -252,117 +188,53 @@ export function MembersWorkspace() {
             <ul className="community-list" role="list">
               {visible.map((member) => {
                 const isSelf = myId !== "" && member.id === myId;
-                const canManage = filter === "all" && !isSelf;
-                const canSuspend = filter === "admins" && !isSelf;
+                const isActive = member.active !== false;
                 return (
                   <li key={member.id}>
-                    <button
-                      type="button"
-                      className={`community-list__item${
-                        managing?.id === member.id ? " is-active" : ""
-                      }${isSelf ? " is-me" : ""}`}
-                      onClick={() => {
-                        if (canManage) openManage(member);
-                        if (canSuspend) void toggleAdminAccess(member);
-                      }}
+                    <div
+                      className={`community-list__item member-row${isSelf ? " is-me" : ""}`}
                     >
                       <span className="community-list__row">
                         <span className="community-list__name">
                           {member.name}
                           {isSelf ? <span className="community-list__you">You</span> : null}
                         </span>
-                        <PresenceBadge online={member.online} />
+                        <span className="member-row__status">
+                          <PresenceBadge online={member.online} />
+                          {isSelf ? null : (
+                            <label className="member-switch">
+                              <span className="visually-hidden">
+                                {isActive ? "Active" : "Inactive"} sign-in for {member.name}
+                              </span>
+                              <input
+                                type="checkbox"
+                                role="switch"
+                                checked={isActive}
+                                disabled={pendingId === member.id}
+                                onChange={(event) =>
+                                  void toggleActive(member, event.target.checked)
+                                }
+                              />
+                              <span className="member-switch__track" />
+                            </label>
+                          )}
+                        </span>
                       </span>
                       <span className="community-list__meta">
                         {[
                           accountTypeLabel(member.account_type),
                           member.role,
                           member.zone_id,
-                          member.active === false ? "Inactive" : null,
-                          canSuspend
-                            ? member.active === false
-                              ? "Tap to restore"
-                              : "Tap to suspend"
-                            : null,
+                          isActive ? "Active" : "Inactive",
                         ]
                           .filter(Boolean)
                           .join(" · ")}
                       </span>
-                    </button>
+                    </div>
                   </li>
                 );
               })}
             </ul>
-          )}
-        </section>
-
-        <section className="dash-card" aria-labelledby="dash-manage-title">
-          <h2 className="community-panel__title" id="dash-manage-title">
-            Manage member
-          </h2>
-          {managing ? (
-            <form
-              className="dash-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void saveManaged();
-              }}
-            >
-              <p className="dash-hint">
-                {managing.name}
-                {managing.email ? ` · ${managing.email}` : ""}
-              </p>
-              <label className="contact__field">
-                Account type
-                <select
-                  value={accountType}
-                  onChange={(event) => setAccountType(event.target.value)}
-                >
-                  {ASSIGNABLE_ACCOUNT_TYPES.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="contact__field">
-                Role
-                <select
-                  value={role}
-                  onChange={(event) =>
-                    setRole(event.target.value === "administrator" ? "administrator" : "user")
-                  }
-                >
-                  <option value="administrator">Administrator</option>
-                  <option value="user">User</option>
-                </select>
-              </label>
-              <label className="dash-check">
-                <input
-                  type="checkbox"
-                  checked={active}
-                  onChange={(event) => setActive(event.target.checked)}
-                />
-                Active — can sign in
-              </label>
-              <div className="dash-actions">
-                <button className="btn btn--primary" type="submit" disabled={busy}>
-                  {busy ? "Saving…" : "Save member"}
-                </button>
-                <button
-                  className="btn btn--ghost"
-                  type="button"
-                  onClick={() => setManaging(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : (
-            <p className="community-panel__empty">
-              Choose someone from All members to edit their account. On Network
-              admins, choose a person to suspend or restore sign-in.
-            </p>
           )}
         </section>
       </div>
