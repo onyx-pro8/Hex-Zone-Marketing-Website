@@ -6,6 +6,7 @@ import { AboutPage } from "./pages/AboutPage";
 import { AccountPage } from "./pages/AccountPage";
 import { CommunityPage } from "./pages/CommunityPage";
 import { ContactPage } from "./pages/ContactPage";
+import { DashboardPage } from "./pages/DashboardPage";
 import { CreateAccountPage } from "./pages/CreateAccountPage";
 import { FaqPage } from "./pages/FaqPage";
 import { Home } from "./pages/Home";
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="signup" element={<Navigate to="/register" replace />} />
             <Route path="account" element={<AccountPage />} />
             <Route path="community" element={<CommunityPage />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

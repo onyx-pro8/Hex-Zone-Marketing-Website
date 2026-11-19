@@ -123,3 +123,47 @@ export async function updateMemberLocation(payload: {
     body: payload,
   });
 }
+
+export async function listNetworkAdmins() {
+  const result = await request<unknown>({
+    method: "GET",
+    path: "/owners/network-admins",
+  });
+  const rows = Array.isArray(result.data) ? result.data : [];
+  return {
+    ...result,
+    data: rows
+      .map(normalizeMember)
+      .filter((member): member is Member => Boolean(member)),
+  };
+}
+
+export async function setMemberActive(memberId: string | number, active: boolean) {
+  return request<unknown>({
+    method: "PATCH",
+    path: `/owners/${encodeURIComponent(String(memberId))}`,
+    body: { active },
+  });
+}
+
+export async function setMemberAccountType(
+  memberId: string | number,
+  accountType: string,
+) {
+  return request<unknown>({
+    method: "PATCH",
+    path: `/owners/${encodeURIComponent(String(memberId))}`,
+    body: { account_type: accountType },
+  });
+}
+
+export async function setMemberRole(
+  memberId: string | number,
+  role: "administrator" | "user",
+) {
+  return request<unknown>({
+    method: "PATCH",
+    path: `/owners/${encodeURIComponent(String(memberId))}`,
+    body: { role },
+  });
+}
