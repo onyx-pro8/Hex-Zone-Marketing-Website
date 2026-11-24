@@ -843,7 +843,7 @@ p {
 }
 
 .hero__lead {
-  max-width: 27em;
+  max-width: 36em;
   margin-top: 18px;
   color: #c9efd3;
   font-size: 20.5px;
@@ -1013,7 +1013,7 @@ p {
     font-size: 40px;
   }
   .hero__lead {
-    max-width: 25em;
+    max-width: 36em;
     font-size: 18.5px;
     line-height: 30px;
   }

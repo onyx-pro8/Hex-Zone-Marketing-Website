@@ -89,8 +89,8 @@ export function Hero() {
             <span className="hero__tagline">Together. Aware. Protected.</span>
           </h1>
           <p className="hero__lead">
-            The geospatial zone-management platform that keeps you connected — across places,
-            people, and devices.
+            Where location helps connect communities to the messages that matter - See Something.
+            Say Something. Scan to Join
           </p>
 
           <div className="hero__actions">
