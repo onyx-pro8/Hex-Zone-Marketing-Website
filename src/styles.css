@@ -5154,6 +5154,10 @@ p {
   z-index: 1;
   background: #fff;
 }
+.zones-studio__save {
+  position: relative;
+  z-index: 85;
+}
 .zones-studio__save .zone-save {
   width: 100%;
 }
