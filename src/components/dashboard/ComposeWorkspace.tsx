@@ -16,6 +16,7 @@ import {
 } from "../../lib/api/messages";
 import { subscribeRealtimeMessages } from "../../lib/realtime";
 import { useAuthenticatedAvatarSrc } from "../../lib/avatar";
+import { isSystemAdministrator } from "../../lib/privateAccount";
 
 const MESSAGE_TYPES: { type: MessageType; label: string; category: string }[] = [
   { type: "SENSOR", label: "SENSOR", category: "Alarm" },
@@ -78,7 +79,7 @@ function needsConfirm(type: MessageType): boolean {
 
 function locationHint(status: PrivateLocationStatus | null): string | null {
   if (status === "outside_zone") {
-    return "You are outside a zone. Private accounts can still choose zones and search for a receiver.";
+    return "You are outside a zone. Move inside one, or search for a receiver by name.";
   }
   if (status === "no_coordinates") {
     return "Location is unavailable. Search by name to choose a receiver.";
@@ -262,6 +263,7 @@ function toggleZone(
 
 export function ComposeWorkspace() {
   const { user } = useAuth();
+  const systemAdmin = isSystemAdministrator(user);
   const [type, setType] = useState<MessageType>("PA");
   const [zones, setZones] = useState<ComposeZoneOption[]>([]);
   const [zonesLoading, setZonesLoading] = useState(false);
@@ -596,8 +598,8 @@ export function ComposeWorkspace() {
         Compose message
       </h2>
       <p className="dash-hint">
-        Sending as {broadcastName}. Private accounts can target any zone without
-        standing inside it.
+        Sending as {broadcastName}. Messages go to the zones that apply to you.
+        {systemAdmin ? " As system admin you can target any zone." : ""}
       </p>
 
       <p className="dash-label">Message type</p>
@@ -624,7 +626,7 @@ export function ComposeWorkspace() {
         ))}
       </div>
 
-      {usesZoneTargeting(type) ? (
+      {usesZoneTargeting(type) && (zones.length > 1 || (systemAdmin && zones.length > 0)) ? (
         <div className="dash-block">
           <p className="dash-label">Send to zone</p>
           {zonesLoading ? (
@@ -675,6 +677,14 @@ export function ComposeWorkspace() {
             </button>
           ) : null}
         </div>
+      ) : usesZoneTargeting(type) ? (
+        <p className="dash-hint">
+          {zonesLoading
+            ? "Loading zones…"
+            : zones[0]
+              ? `Sending to ${zones[0].label}.`
+              : "No zone covers your current location."}
+        </p>
       ) : null}
 
       {isPrivateType(type) ? (
