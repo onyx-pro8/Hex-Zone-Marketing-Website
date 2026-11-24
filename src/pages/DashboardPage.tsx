@@ -6,7 +6,7 @@ import { MembersWorkspace } from "../components/dashboard/MembersWorkspace";
 import { PermissionWorkspace } from "../components/dashboard/PermissionWorkspace";
 import { ZonesWorkspace } from "../components/dashboard/ZonesWorkspace";
 import { PageHero } from "../components/PageHero";
-import { isPrivateAccount } from "../lib/privateAccount";
+import { accountTypeLabel, isSystemAdministrator } from "../lib/privateAccount";
 
 type DashboardTab = "zones" | "members" | "compose" | "permission";
 
@@ -36,31 +36,24 @@ export function DashboardPage() {
     return <Navigate to="/login?next=/dashboard" replace />;
   }
 
-  if (!isPrivateAccount(user)) {
-    return <Navigate to="/" replace />;
-  }
-
-  const canGrantPermission =
-    String(user?.role ?? "").toLowerCase() === "administrator" &&
-    String(user?.platform_staff_role ?? user?.platformStaffRole ?? "none")
-      .toLowerCase()
-      .replace(/[\s-]+/g, "_") !== "technical_support";
+  const canGrantPermission = isSystemAdministrator(user);
   const tabs = canGrantPermission
     ? [...TABS, { id: "permission" as const, label: "Permission" }]
     : TABS;
+  const accountLabel = accountTypeLabel(user?.accountType ?? user?.account_type);
 
   return (
     <main id="main">
       <PageHero
-        eyebrow="Private account"
+        eyebrow={accountLabel}
         title="Dashboard"
         lead={
           canGrantPermission
-            ? "Manage zones, members, and outbound messages, and give Technical Support permission. This workspace is available only on Private accounts."
-            : "Manage zones, members, and outbound messages. This workspace is available only on Private accounts."
+            ? "Manage your zones, network members, and messages, and give Technical Support permission."
+            : "Manage your zones, network members, and messages."
         }
       />
-      <section className="page-section page-section--tint" aria-label="Private dashboard">
+      <section className="page-section page-section--tint" aria-label="Dashboard">
         <div className="container dash-page">
           <div className="dash-tabs" role="tablist" aria-label="Dashboard">
             {tabs.map((item) => (

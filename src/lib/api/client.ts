@@ -65,6 +65,14 @@ export function persistLastEmail(email: string): void {
   }
 }
 
+export function clearLastEmail(): void {
+  try {
+    localStorage.removeItem(LAST_EMAIL_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function getLastEmail(): string {
   try {
     return localStorage.getItem(LAST_EMAIL_KEY) ?? "";

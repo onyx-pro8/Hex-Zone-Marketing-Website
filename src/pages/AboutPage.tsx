@@ -4,7 +4,7 @@ import { PageHero } from "../components/PageHero";
 const pillars = [
   {
     title: "Weave places, people, and devices",
-    text: "Zones only work when geography, membership, and hardware stay connected in one operational picture.",
+    text: "A neighbourhood works when the people, homes, and devices that belong there stay connected.",
   },
   {
     title: "Monitor with intent",
@@ -19,8 +19,8 @@ const pillars = [
 const focusAreas = [
   {
     label: "What we build",
-    title: "Geospatial zone operations",
-    text: "Safe Zone Patrol helps administrators define zones, connect members and devices, manage guest access, and respond to incidents from web and mobile.",
+    title: "Neighbourhoods that look out for each other",
+    text: "Safe Zone Patrol helps you create a neighbourhood, connect your family, welcome guests, and get alerts on the web and on your phone.",
   },
   {
     label: "Who we serve",
@@ -40,7 +40,7 @@ export function AboutPage() {
       <PageHero
         eyebrow="Company"
         title="About Safe Zone Patrol"
-        lead="We build software that turns places into managed safe zones — connecting people, devices, and access rules across web and mobile."
+        lead="We help families and neighbours look out for each other — connecting the people and places that matter, on the web and on your phone."
       />
 
       <section className="page-section page-section--tint" aria-labelledby="about-mission-title">
@@ -48,19 +48,17 @@ export function AboutPage() {
           <div className="content-split__intro">
             <p className="eyebrow">Mission</p>
             <h2 className="section-title" id="about-mission-title">
-              Weave. Monitor. Protect.
+              Feel safer. Stay connected. Look out for one another.
             </h2>
           </div>
           <div className="content-split__body">
             <p>
-              Location alone is not enough. Families, facilities, and organizations need a shared
-              system for defining where protection applies, who belongs there, and how to respond when
-              something changes.
+              Location alone is not enough. Families and neighbours need a shared way to know who
+              belongs, what is happening nearby, and how to reach the people who matter.
             </p>
             <p>
-              Safe Zone Patrol brings zone creation, membership, guest access, smart-home hubs, and
-              alerting into one coordinated platform — designed to stay usable from first setup through
-              multi-site operations.
+              Safe Zone Patrol brings your neighbourhood, your family's devices, guest visits, and
+              alerts into one place — simple from the first setup, and ready as your community grows.
             </p>
           </div>
         </div>

@@ -12,7 +12,7 @@ import {
   parseMemberPresenceEvent,
   subscribeRealtimeMessages,
 } from "../../lib/realtime";
-import { accountTypeLabel } from "../../lib/privateAccount";
+import { accountTypeLabel, isSystemAdministrator } from "../../lib/privateAccount";
 
 type Filter = "same-zone" | "all" | "admins";
 
@@ -78,6 +78,9 @@ export function MembersWorkspace() {
 
   const myZoneId = String(user?.zoneId ?? user?.zone_id ?? "").trim();
   const myId = String(user?.id ?? "").trim();
+  const systemAdmin = isSystemAdministrator(user);
+  const canManageSignIn =
+    String(user?.role ?? "").toLowerCase() === "administrator";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -162,8 +165,9 @@ export function MembersWorkspace() {
   return (
     <div className="dash-members">
       <p className="dash-hint">
-        Use the switch to let a member sign in. Role and account type stay as
-        they are. Inactive users cannot sign in.
+        {canManageSignIn
+          ? "Use the switch to let a member of your network sign in. Role and account type stay as they are."
+          : "People in your network."}
         {myZoneId ? ` Your network is ${myZoneId}.` : ""}
       </p>
 
@@ -171,8 +175,12 @@ export function MembersWorkspace() {
         {(
           [
             ["same-zone", myZoneId ? "Same zone" : "Same zone (none)"],
-            ["all", "All members"],
-            ["admins", "Network admins"],
+            ...(systemAdmin
+              ? ([
+                  ["all", "All members"],
+                  ["admins", "Network admins"],
+                ] as const)
+              : []),
           ] as const
         ).map(([id, label]) => (
           <button
@@ -229,7 +237,7 @@ export function MembersWorkspace() {
                         </span>
                         <span className="member-row__status">
                           <PresenceBadge online={member.online} />
-                          {isSelf ? null : (
+                          {isSelf || !canManageSignIn ? null : (
                             <label className="member-switch">
                               <span className="visually-hidden">
                                 {isActive ? "Active" : "Inactive"} sign-in for {member.name}

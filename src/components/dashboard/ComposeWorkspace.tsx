@@ -1,12 +1,17 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
 import {
   getOrCreateWebHid,
+  listChatGuests,
   listComposeZoneRecipients,
   listComposeZones,
   listInboxMessages,
   propagateMessage,
   searchPrivateMessageRecipients,
+  sendChatMessage,
+  uploadMessageImage,
+  type ChatGuest,
   type ComposeZoneOption,
   type MessagePosition,
   type MessageType,
@@ -14,8 +19,10 @@ import {
   type InboxMessage,
   type PrivateSearchMember,
 } from "../../lib/api/messages";
+import { getRemoteAppSettings } from "../../lib/api/profile";
 import { subscribeRealtimeMessages } from "../../lib/realtime";
 import { useAuthenticatedAvatarSrc } from "../../lib/avatar";
+import { isSystemAdministrator } from "../../lib/privateAccount";
 
 const MESSAGE_TYPES: { type: MessageType; label: string; category: string }[] = [
   { type: "SENSOR", label: "SENSOR", category: "Alarm" },
@@ -26,6 +33,7 @@ const MESSAGE_TYPES: { type: MessageType; label: string; category: string }[] = 
   { type: "PRIVATE", label: "PRIVATE", category: "Alert" },
   { type: "PA", label: "PA", category: "Alert" },
   { type: "SERVICE", label: "SERVICE", category: "Alert" },
+  { type: "CHAT", label: "CHAT", category: "Access" },
 ];
 
 const SERVICE_TOPICS: { id: string; label: string; subtopics?: { id: string; label: string }[] }[] =
@@ -55,7 +63,7 @@ const SERVICE_TOPICS: { id: string; label: string; subtopics?: { id: string; lab
 type ZoneSelection = "all" | number[];
 
 function usesZoneTargeting(type: MessageType): boolean {
-  return type !== "UNKNOWN";
+  return type !== "UNKNOWN" && type !== "CHAT";
 }
 
 function isPrivateType(type: MessageType): boolean {
@@ -67,18 +75,33 @@ function isServicePa(type: MessageType): boolean {
 }
 
 function needsConfirm(type: MessageType): boolean {
-  return (
-    type === "PANIC" ||
-    type === "NS_PANIC" ||
-    type === "SENSOR" ||
-    type === "UNKNOWN" ||
-    type === "WELLNESS_CHECK"
-  );
+  return type === "PANIC" || type === "NS_PANIC";
+}
+
+function isChatType(type: MessageType): boolean {
+  return type === "CHAT";
+}
+
+const MAX_MESSAGE_IMAGES = 5;
+
+type ReceiverGroup = {
+  zoneRecordId: number;
+  label: string;
+  members: PrivateSearchMember[];
+};
+
+function readImageFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("Could not read photo."));
+    reader.readAsDataURL(file);
+  });
 }
 
 function locationHint(status: PrivateLocationStatus | null): string | null {
   if (status === "outside_zone") {
-    return "You are outside a zone. Private accounts can still choose zones and search for a receiver.";
+    return "You are outside a zone. Move inside one, or search for a receiver by name.";
   }
   if (status === "no_coordinates") {
     return "Location is unavailable. Search by name to choose a receiver.";
@@ -262,9 +285,10 @@ function toggleZone(
 
 export function ComposeWorkspace() {
   const { user } = useAuth();
+  const systemAdmin = isSystemAdministrator(user);
   const [type, setType] = useState<MessageType>("PA");
   const [zones, setZones] = useState<ComposeZoneOption[]>([]);
-  const [zonesLoading, setZonesLoading] = useState(false);
+  const [zonesLoading, setZonesLoading] = useState(true);
   const [selection, setSelection] = useState<ZoneSelection>("all");
   const [query, setQuery] = useState("");
   const [receiverId, setReceiverId] = useState("");
@@ -274,6 +298,12 @@ export function ComposeWorkspace() {
     null,
   );
   const [showReceivers, setShowReceivers] = useState(false);
+  const [receiverGroups, setReceiverGroups] = useState<ReceiverGroup[]>([]);
+  const [guests, setGuests] = useState<ChatGuest[]>([]);
+  const [guestsLoading, setGuestsLoading] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [savedBroadcast, setSavedBroadcast] = useState("");
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [subtopic, setSubtopic] = useState("");
@@ -305,6 +335,17 @@ export function ComposeWorkspace() {
   }, [loadInbox]);
 
   useEffect(() => {
+    let active = true;
+    void getRemoteAppSettings().then((result) => {
+      if (!active) return;
+      setSavedBroadcast((result.data?.broadcastName ?? "").trim());
+    });
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
     let timer = 0;
     return subscribeRealtimeMessages((raw) => {
       let eventType = "";
@@ -322,7 +363,9 @@ export function ComposeWorkspace() {
     });
   }, [loadInbox]);
 
-  const broadcastName = user?.name?.trim() || user?.email?.trim() || "Private";
+  const fallbackName = user?.name?.trim() || user?.email?.trim() || "Member";
+  const broadcastName = savedBroadcast || fallbackName;
+  const networkId = String(user?.zoneId ?? user?.zone_id ?? "").trim();
   const selectedIds = selection === "all" ? null : selection;
   const topicOption = SERVICE_TOPICS.find((item) => item.id === topic);
 
@@ -392,6 +435,27 @@ export function ComposeWorkspace() {
     };
   }, [type, query, selectedIds]);
 
+  useEffect(() => {
+    if (!isChatType(type) || !networkId) {
+      setGuests([]);
+      setGuestsLoading(false);
+      return;
+    }
+    let active = true;
+    setGuestsLoading(true);
+    void listChatGuests(networkId).then((result) => {
+      if (!active) return;
+      const rows = result.error ? [] : (result.data ?? []);
+      setGuests(rows);
+      setReceiverId((current) => current || rows[0]?.id || "");
+      if (result.error) setError(result.error);
+      setGuestsLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [type, networkId]);
+
   const receiverOptions = useMemo(
     () =>
       recipients.map((member) => ({
@@ -408,27 +472,61 @@ export function ComposeWorkspace() {
     setError("");
     const position = await readPosition();
     const targets =
-      selectedIds ?? zones.map((zone) => zone.zone_record_id);
+      selectedIds == null
+        ? zones
+        : selectedIds.map(
+            (zoneRecordId) =>
+              zones.find((zone) => zone.zone_record_id === zoneRecordId) ?? {
+                zone_record_id: zoneRecordId,
+                zone_id: "",
+                name: null,
+                label: "Selected zone",
+                tier: "secondary",
+              },
+          );
     if (targets.length === 0) {
-      setRecipients([]);
+      setReceiverGroups([]);
       setRecipientsLoading(false);
       return;
     }
     const groups = await Promise.all(
-      targets.map((zoneRecordId) =>
-        listComposeZoneRecipients({ zoneRecordId, type, position }),
-      ),
+      targets.map(async (zone) => {
+        const result = await listComposeZoneRecipients({
+          zoneRecordId: zone.zone_record_id,
+          type,
+          position,
+        });
+        return {
+          zoneRecordId: zone.zone_record_id,
+          label: zone.label,
+          members: result.data?.members ?? [],
+        };
+      }),
     );
-    const merged = new Map<number, PrivateSearchMember>();
-    for (const group of groups) {
-      for (const member of group.data?.members ?? []) merged.set(member.id, member);
-    }
-    setRecipients([...merged.values()]);
+    setReceiverGroups(groups);
     setRecipientsLoading(false);
+  }
+
+  async function onPickImages(fileList: FileList | null) {
+    const files = [...(fileList ?? [])].filter((file) => file.type.startsWith("image/"));
+    if (files.length === 0) return;
+    const remaining = MAX_MESSAGE_IMAGES - images.length;
+    if (remaining <= 0) {
+      setError("You can attach up to 5 photos.");
+      return;
+    }
+    try {
+      const dataUrls = await Promise.all(files.slice(0, remaining).map(readImageFile));
+      setImages((current) => [...current, ...dataUrls].slice(0, MAX_MESSAGE_IMAGES));
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not read photo.");
+    }
   }
 
   async function onSend() {
     const text = body.trim();
+    const hasImages = images.length > 0;
     setError("");
     setStatus("");
     if (isServicePa(type)) {
@@ -444,13 +542,23 @@ export function ComposeWorkspace() {
         setError("Subtopic is required for SERVICE Products messages.");
         return;
       }
-      if (!text) {
+      if (!text && !hasImages) {
         setError("Message body is required.");
         return;
       }
-    } else if (!text) {
+    } else if (!text && !hasImages) {
       setError("Type a message first.");
       return;
+    }
+    if (isChatType(type)) {
+      if (!networkId) {
+        setError("Your account has no network id; cannot message guests.");
+        return;
+      }
+      if (!receiverId.trim()) {
+        setError("Select a guest for Access CHAT.");
+        return;
+      }
     }
     if (isPrivateType(type)) {
       const parsed = Number(receiverId);
@@ -460,13 +568,51 @@ export function ComposeWorkspace() {
       }
     }
     if (needsConfirm(type)) {
+      const label = MESSAGE_TYPES.find((item) => item.type === type)?.label ?? type;
       const ok = window.confirm(
-        `Send this ${type.replace(/_/g, " ")} message now?`,
+        `Emergency alert\n\n${label} uses your current location. Inside the admin primary zone, all invited members and the administrator are notified; outside the primary zone, no one receives it. Block filters are bypassed.`,
       );
       if (!ok) return;
     }
 
     setSending(true);
+    setStatus(hasImages ? "Uploading photos…" : "Sending…");
+    const imageUrls: string[] = [];
+    for (let index = 0; index < images.length; index += 1) {
+      setStatus(`Uploading photo ${index + 1} of ${images.length}…`);
+      const uploaded = await uploadMessageImage(images[index]);
+      if (uploaded.error) {
+        setSending(false);
+        setStatus("");
+        setError(uploaded.error);
+        return;
+      }
+      imageUrls.push(uploaded.data?.url?.trim() || images[index]);
+    }
+    const imageExtras = imageUrls.length ? { images: imageUrls } : {};
+    setStatus("Sending…");
+
+    if (isChatType(type)) {
+      const result = await sendChatMessage({
+        guestId: receiverId.trim(),
+        message: text,
+        zoneId: networkId,
+        broadcastName,
+        images: imageUrls,
+      });
+      setSending(false);
+      setStatus("");
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setStatus("Message sent.");
+      setBody("");
+      setImages([]);
+      void loadInbox();
+      return;
+    }
+
     const position = await readPosition();
     const parsedReceiver = Number(receiverId);
     const zoneTarget =
@@ -482,10 +628,12 @@ export function ComposeWorkspace() {
           ...(subtopic ? { subtopic } : {}),
           description: text,
           broadcast_name: broadcastName,
+          ...imageExtras,
         }
       : {
           description: text,
           broadcast_name: broadcastName,
+          ...imageExtras,
           ...(isPrivateType(type) && parsedReceiver > 0
             ? { receiver_id: parsedReceiver }
             : {}),
@@ -502,6 +650,7 @@ export function ComposeWorkspace() {
       ...zoneTarget,
     });
     setSending(false);
+    setStatus("");
     if (result.error) {
       setError(result.error);
       return;
@@ -522,6 +671,7 @@ export function ComposeWorkspace() {
     setSubtopic("");
     setReceiverId("");
     setQuery("");
+    setImages([]);
     void loadInbox();
   }
 
@@ -595,10 +745,7 @@ export function ComposeWorkspace() {
       <h2 className="community-panel__title" id="dash-compose-title">
         Compose message
       </h2>
-      <p className="dash-hint">
-        Sending as {broadcastName}. Private accounts can target any zone without
-        standing inside it.
-      </p>
+      <p className="dash-hint">Sending as {broadcastName}</p>
 
       <p className="dash-label">Message type</p>
       <div className="dash-chips">
@@ -630,11 +777,17 @@ export function ComposeWorkspace() {
           {zonesLoading ? (
             <p className="community-page__status">Loading zones…</p>
           ) : zones.length === 0 ? (
-            <p className="dash-hint">No zones on the platform.</p>
-          ) : (
+            <p className="dash-hint">
+              {systemAdmin
+                ? "No zones on the platform."
+                : "No overlapping zones at this message type's send location."}
+            </p>
+          ) : zones.length > 1 || systemAdmin ? (
             <>
               <p className="dash-hint">
-                Select one or more zones, or send to every zone.
+                {systemAdmin
+                  ? "Select one or more zones, or send to every zone. You do not need to be inside a zone."
+                  : "You are inside more than one zone. Select one or more, or keep all zones."}
               </p>
               <div className="dash-chips">
                 <button
@@ -668,6 +821,8 @@ export function ComposeWorkspace() {
                 })}
               </div>
             </>
+          ) : (
+            <p className="dash-hint">{zones[0]?.label ?? "1 zone"}</p>
           )}
           {!isPrivateType(type) && zones.length > 0 ? (
             <button className="btn btn--outline" type="button" onClick={() => void loadPublicReceivers()}>
@@ -723,22 +878,36 @@ export function ComposeWorkspace() {
         </div>
       ) : null}
 
-      {showReceivers && !isPrivateType(type) ? (
+      {isChatType(type) ? (
         <div className="dash-block">
-          <p className="dash-label">Possible receivers</p>
-          {recipientsLoading ? (
-            <p className="community-page__status">Looking up members…</p>
-          ) : recipients.length === 0 ? (
-            <p className="dash-hint">No receivers in the selected zones.</p>
+          {!networkId ? (
+            <p className="dash-hint">Your account has no network id; cannot message guests.</p>
+          ) : guestsLoading ? (
+            <p className="community-page__status">Loading guests…</p>
+          ) : guests.length === 0 ? (
+            <>
+              <p className="dash-label">Send to guest</p>
+              <p className="dash-hint">No guests available for CHAT yet.</p>
+            </>
           ) : (
-            <ul className="dash-receivers" role="list">
-              {recipients.map((member) => (
-                <li key={member.id}>
-                  <strong>{memberLabel(member)}</strong>
-                  {member.subtitle ? <span>{member.subtitle}</span> : null}
-                </li>
-              ))}
-            </ul>
+            <>
+              <p className="dash-hint">
+                Pending (oldest first), then approved, then rejected. Defaults to the oldest pending guest. Full guest list stays in Guest Management.
+              </p>
+              <label className="contact__field">
+                Send to guest
+                <select
+                  value={receiverId}
+                  onChange={(event) => setReceiverId(event.target.value)}
+                >
+                  {guests.map((guest) => (
+                    <option key={guest.id} value={guest.id}>
+                      {guest.name} — {guest.status}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
           )}
         </div>
       ) : null}
@@ -806,6 +975,38 @@ export function ComposeWorkspace() {
         />
       </label>
 
+      {images.length > 0 ? (
+        <ul className="dash-photos" role="list">
+          {images.map((src, index) => (
+            <li key={`${index}-${src.slice(0, 24)}`}>
+              <img src={src} alt="" />
+              <button
+                type="button"
+                aria-label="Remove photo"
+                onClick={() =>
+                  setImages((current) => current.filter((_, item) => item !== index))
+                }
+              >
+                <X size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <label className={`btn btn--outline dash-photo-add${images.length >= MAX_MESSAGE_IMAGES ? " is-disabled" : ""}`}>
+        {images.length ? `Add photo (${images.length}/5)` : "Add photos"}
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          disabled={sending || images.length >= MAX_MESSAGE_IMAGES}
+          onChange={(event) => {
+            void onPickImages(event.target.files);
+            event.target.value = "";
+          }}
+        />
+      </label>
+
       {error ? (
         <p className="community-page__status is-error" role="alert">
           {error}
@@ -822,6 +1023,71 @@ export function ComposeWorkspace() {
         {sending ? "Sending…" : "Send message"}
       </button>
     </section>
+
+    {showReceivers ? (
+      <div
+        className="zone-detail-modal"
+        role="presentation"
+        onClick={() => setShowReceivers(false)}
+      >
+        <div
+          className="zone-detail-modal__card dash-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="compose-receivers-title"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="dash-card__head">
+            <h2 id="compose-receivers-title">Possible receivers</h2>
+            <button
+              type="button"
+              className="ua-modal__close"
+              aria-label="Close receivers list"
+              onClick={() => setShowReceivers(false)}
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <p className="dash-hint">
+            {selection === "all"
+              ? systemAdmin
+                ? "All zones"
+                : "All overlapping zones"
+              : selection
+                  .map(
+                    (id) =>
+                      zones.find((zone) => zone.zone_record_id === id)?.label ??
+                      "Selected zone",
+                  )
+                  .join(", ")}
+          </p>
+          {recipientsLoading ? (
+            <p className="community-page__status">Looking up members…</p>
+          ) : receiverGroups.length === 0 ||
+            receiverGroups.every((group) => group.members.length === 0) ? (
+            <p className="dash-hint">No receivers for this selection.</p>
+          ) : (
+            receiverGroups.map((group) => (
+              <div key={group.zoneRecordId} className="dash-block">
+                <p className="dash-label">{group.label}</p>
+                {group.members.length === 0 ? (
+                  <p className="dash-hint">No receivers in this zone.</p>
+                ) : (
+                  <ul className="dash-receivers" role="list">
+                    {group.members.map((member) => (
+                      <li key={`${group.zoneRecordId}-${member.id}`}>
+                        <strong>{memberLabel(member)}</strong>
+                        {member.subtitle ? <span>{member.subtitle}</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    ) : null}
 
     <div className="dash-board-column">
     <form className="dash-card dash-board__filters" onSubmit={(event) => event.preventDefault()}>
@@ -977,6 +1243,21 @@ export function ComposeWorkspace() {
                             <p className="dash-bubble__subject">{message.subject}</p>
                           ) : null}
                           {message.body ? <p className="dash-bubble__text">{message.body}</p> : null}
+                          {message.images.length > 0 ? (
+                            <div className="dash-bubble__images">
+                              {message.images.map((src, index) => (
+                                <button
+                                  key={`${message.id}-image-${index}`}
+                                  type="button"
+                                  className="dash-bubble__photo"
+                                  onClick={() => setPreviewImage(src)}
+                                  aria-label={`Open photo ${index + 1}`}
+                                >
+                                  <img src={src} alt="" />
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
                           {showBadge ? (
                             <span className={`dash-bubble__chip is-${tone}`}>
                               {typeLabel(message.type)}
@@ -994,6 +1275,31 @@ export function ComposeWorkspace() {
       </div>
     </aside>
     </div>
+    {previewImage ? (
+      <div
+        className="zone-detail-modal"
+        role="presentation"
+        onClick={() => setPreviewImage(null)}
+      >
+        <div
+          className="dash-photo-preview"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Message photo"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="ua-modal__close"
+            aria-label="Close photo"
+            onClick={() => setPreviewImage(null)}
+          >
+            <X size={18} />
+          </button>
+          <img src={previewImage} alt="" />
+        </div>
+      </div>
+    ) : null}
     </div>
   );
 }

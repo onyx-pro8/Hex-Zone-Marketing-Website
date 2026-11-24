@@ -1,23 +1,23 @@
 const steps = [
   {
     step: "01",
-    title: "Define your zones",
-    text: "Draw geofences or assign H3 cells for homes, campuses, routes, and patrol areas in minutes.",
+    title: "Define your Neighbourhood",
+    text: "Map it. Protect it. Patrol it. Easily create virtual safety zones for homes, campuses, routes, and patrol areas in just minutes.",
   },
   {
     step: "02",
-    title: "Connect people & devices",
-    text: "Invite members, register devices, and set roles so everyone sees the right zone context.",
+    title: "Connect to your neighbourhood",
+    text: "Get your team connected! Invite members, add their devices, and assign roles to keep everyone on the same page.",
   },
   {
     step: "03",
-    title: "Monitor in real time",
-    text: "Track presence, receive alerts, and review activity as people and assets move through zones.",
+    title: "Hear what matters",
+    text: "Know who's where, stay ahead of every movement, and keep your spaces secure with real-time tracking, instant alerts, and easy-to-access activity history.",
   },
   {
     step: "04",
-    title: "Control access & respond",
-    text: "Issue guest passes, manage permissions, and coordinate responses from web or mobile.",
+    title: "Keeping Watch. Keeping You Safe",
+    text: "Make community security easier. Welcome guests, manage access, and stay connected with your security team from anywhere.",
   },
 ];
 
@@ -28,10 +28,10 @@ export function HowItWorks() {
         <div className="section-head how__head">
           <p className="eyebrow">How it works</p>
           <h2 className="section-title" id="how-title">
-            From zone setup to live protection
+            From Defining Communities to Providing a Change of Lifestyle
           </h2>
           <p className="section-sub">
-            A clear workflow that scales from a single household to multi-site operations.
+            From your front door to your entire community, stay connected and protected.
           </p>
         </div>
 

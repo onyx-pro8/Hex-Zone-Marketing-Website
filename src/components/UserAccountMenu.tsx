@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { initialsFor, useAuthenticatedAvatarSrc } from "../lib/avatar";
-import { isPrivateAccount } from "../lib/privateAccount";
 
 type UserAccountMenuProps = {
   onNavigate?: () => void;
@@ -18,7 +17,6 @@ export function UserAccountMenu({ onNavigate }: UserAccountMenuProps) {
   );
   const initials = initialsFor(user?.name, user?.email);
   const label = user?.name?.split(" ")[0] || "Account";
-  const privateAccount = isPrivateAccount(user);
 
   useEffect(() => {
     function onDocumentClick(event: MouseEvent) {
@@ -69,30 +67,6 @@ export function UserAccountMenu({ onNavigate }: UserAccountMenuProps) {
         role="menu"
         hidden={!open}
       >
-        {privateAccount ? (
-          <Link
-            className="site-header__user-item"
-            role="menuitem"
-            to="/dashboard"
-            onClick={() => {
-              setOpen(false);
-              onNavigate?.();
-            }}
-          >
-            Dashboard
-          </Link>
-        ) : null}
-        <Link
-          className="site-header__user-item"
-          role="menuitem"
-          to="/community"
-          onClick={() => {
-            setOpen(false);
-            onNavigate?.();
-          }}
-        >
-          Community
-        </Link>
         <Link
           className="site-header__user-item"
           role="menuitem"

@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 import { Icon } from "./Icon";
 
 const features = [
   {
-    title: "Create Zones",
-    text: "with H3 or geofences",
+    title: "Create Neighbourhoods",
+    text: "in 3 simple steps",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path
@@ -15,8 +16,8 @@ const features = [
     ),
   },
   {
-    title: "Connect Your Network",
-    text: "Members & devices",
+    title: "Connect to Your Neighbourhood",
+    text: "Family's devices & home-alarm",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <circle cx="12" cy="7.4" r="3.5" />
@@ -55,7 +56,7 @@ const features = [
   },
   {
     title: "Communicate",
-    text: "On the go",
+    text: "With people who matter",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path
@@ -68,12 +69,15 @@ const features = [
 ];
 
 export function Hero() {
+  const { user, token, loading } = useAuth();
+  const signedIn = Boolean(token && (user || loading));
+
   return (
     <section className="hero" aria-labelledby="hero-title">
       <div className="hero__media" aria-hidden="true">
         <img
           className="hero__media-img"
-          src="/assets/hero-main.jpg?v=3"
+          src="/assets/hero-main.jpg?v=10"
           width={1920}
           height={1080}
           fetchPriority="high"
@@ -86,17 +90,19 @@ export function Hero() {
         <div className="hero__copy">
           <h1 className="hero__title" id="hero-title">
             Safe <span className="brand__accent">Zone</span> Patrol
-            <span className="hero__tagline">Weave. Monitor. Protect.</span>
+            <span className="hero__tagline">Feel safer. Stay connected. Look out for one another.</span>
           </h1>
           <p className="hero__lead">
-            The geospatial zone-management platform that keeps you connected — across places,
-            people, and devices.
+            A simple way to bring neighbours, families, and safety patrols together. Stay informed,
+            share concerns, and help create a safer place to call home.
           </p>
 
           <div className="hero__actions">
-            <Link className="btn btn--cyan hero__download" to="/register">
-              Get Started
-            </Link>
+            {signedIn ? null : (
+              <Link className="btn btn--cyan hero__download" to="/register">
+                Get Started
+              </Link>
+            )}
             <a className="hero__store" href="#" aria-label="Download on the App Store">
               <Icon id="i-apple" className="icon hero__store-icon hero__store-icon--apple" />
               <span className="hero__store-label">

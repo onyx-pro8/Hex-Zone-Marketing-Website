@@ -15,7 +15,7 @@ type FeatureCard = {
 const cards: FeatureCard[] = [
   {
     modifier: "feature-card--family",
-    image: "/assets/feature-family.webp",
+    image: "/assets/feature-family.webp?v=4",
     width: 412,
     height: 260,
     alt: "Family of three watching the sunset together",
@@ -33,12 +33,12 @@ const cards: FeatureCard[] = [
   },
   {
     modifier: "feature-card--security",
-    image: "/assets/feature-security.webp",
+    image: "/assets/feature-security.webp?v=4",
     width: 428,
     height: 260,
     alt: "Security officer on patrol outside an office campus",
     title: "Security & Patrols",
-    text: "Monitor zones, manage access, and respond to incidents.",
+    text: "Watch your neighbourhood, welcome guests, and respond when it matters.",
     badge: (
       <svg
         className="feature-card__icon"
@@ -57,7 +57,7 @@ const cards: FeatureCard[] = [
   },
   {
     modifier: "feature-card--facility",
-    image: "/assets/feature-facility.webp",
+    image: "/assets/feature-facility.webp?v=4",
     width: 428,
     height: 260,
     alt: "Modern office building with a landscaped entrance",
@@ -75,7 +75,7 @@ const cards: FeatureCard[] = [
   },
   {
     modifier: "feature-card--delivery",
-    image: "/assets/feature-delivery.webp",
+    image: "/assets/feature-delivery.webp?v=4",
     width: 428,
     height: 260,
     alt: "White delivery van parked on a residential street",
@@ -99,12 +99,12 @@ const cards: FeatureCard[] = [
   },
   {
     modifier: "feature-card--developer",
-    image: "/assets/feature-developer.webp",
+    image: "/assets/feature-developer.webp?v=4",
     width: 420,
     height: 260,
     alt: "Developer at a desk with live map dashboards on screen",
     title: "Developer Ready",
-    text: "Integrate with our REST API and documented endpoints.",
+    text: "Connect Safe Zone Patrol with the tools your community already uses.",
     badge: (
       <svg
         className="feature-card__icon"
@@ -129,12 +129,12 @@ export function Features() {
     <section className="features" id="features" aria-labelledby="features-title">
       <div className="container">
         <div className="section-head features__head">
-          <p className="eyebrow">A COMPLETE ZONE MANAGEMENT SOLUTION</p>
+          <p className="eyebrow">Looking out for your neighbourhood</p>
           <h2 className="section-title" id="features-title">
             Powerful Features. Endless Possibilities.
           </h2>
           <p className="section-sub">
-            From family safety to large-scale operations, Safe Zone Patrol adapts to your needs.
+            From family safety to a whole community, Safe Zone Patrol fits the way you live.
           </p>
         </div>
 

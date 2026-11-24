@@ -13,7 +13,7 @@ const audiences = [
   },
   {
     title: "Facilities & logistics",
-    text: "Authorize site entry, track deliveries, and keep operations moving with zone-based rules.",
+    text: "Welcome visitors, follow deliveries, and keep daily life moving.",
   },
 ];
 
@@ -22,7 +22,7 @@ export function Audiences() {
     <section className="audiences" id="audiences" aria-labelledby="audiences-title">
       <div className="container">
         <div className="section-head audiences__head">
-          <p className="eyebrow">Built for every mission</p>
+          <p className="eyebrow">Made for real life</p>
           <h2 className="section-title" id="audiences-title">
             One platform. Many ways to protect.
           </h2>

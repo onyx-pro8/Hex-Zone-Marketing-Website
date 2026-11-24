@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
+import { ChannelVideoTheater } from "../components/ChannelVideoTheater";
 import { Icon } from "../components/Icon";
 import { PageHero } from "../components/PageHero";
-import { VideoTutorialCard } from "../components/VideoTutorialCard";
 
 const steps = [
   {
@@ -11,57 +11,18 @@ const steps = [
   },
   {
     step: "02",
-    title: "Define zones",
-    text: "Draw geofences or assign H3 cells for homes, campuses, routes, and patrol areas.",
+    title: "Create your neighbourhood",
+    text: "Set up the places your family and neighbours share, in 3 simple steps.",
   },
   {
     step: "03",
-    title: "Connect your network",
-    text: "Invite members, register devices, and configure roles for the right level of access.",
+    title: "Connect to your neighbourhood",
+    text: "Add your family's devices and home alarm so everyone who should know, does.",
   },
   {
     step: "04",
     title: "Monitor and respond",
     text: "Receive real-time alerts, manage guest access, and coordinate from web or mobile.",
-  },
-];
-
-const tutorials = [
-  {
-    title: "Getting started with Safe Zone Patrol",
-    description: "A quick walkthrough of the dashboard, zones, and your first alert setup.",
-    duration: "4:20",
-    category: "Basics",
-  },
-  {
-    title: "Creating zones with H3 and geofences",
-    description: "Learn how to draw, edit, and organize zones for homes, sites, and routes.",
-    duration: "6:05",
-    category: "Zones",
-  },
-  {
-    title: "Inviting members and assigning roles",
-    description: "Add people to your network and control what each role can see and do.",
-    duration: "3:48",
-    category: "Network",
-  },
-  {
-    title: "Guest passes and access control",
-    description: "Issue temporary access, set permissions, and review guest activity.",
-    duration: "5:12",
-    category: "Access",
-  },
-  {
-    title: "Alerts and incident response",
-    description: "Configure alert rules and respond quickly when something needs attention.",
-    duration: "4:55",
-    category: "Alerts",
-  },
-  {
-    title: "Using the mobile app on the go",
-    description: "Stay connected with live status, notifications, and mobile guest tools.",
-    duration: "3:30",
-    category: "Mobile",
   },
 ];
 
@@ -79,10 +40,10 @@ export function HowItWorksPage() {
           <div className="section-head">
             <p className="eyebrow">Workflow</p>
             <h2 className="section-title" id="how-steps-title">
-              Four steps to a connected zone network
+              Four steps to a connected neighbourhood
             </h2>
             <p className="section-sub">
-              The same flow whether you protect a household, a community, or a multi-site operation.
+              The same simple path for a home, a street, or a whole community.
             </p>
           </div>
 
@@ -102,7 +63,7 @@ export function HowItWorksPage() {
         </div>
       </section>
 
-      <section className="page-section" aria-labelledby="how-videos-title">
+      <section className="page-section" id="videos" aria-labelledby="how-videos-title">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">Video tutorials</p>
@@ -110,27 +71,21 @@ export function HowItWorksPage() {
               Learn at your own pace
             </h2>
             <p className="section-sub">
-              Short walkthroughs for setup, zones, access, and day-to-day operations. Videos will
-              appear here when published.
+              Each Safe Zone Patrol walkthrough plays here. Open any video on YouTube if you would
+              rather watch it there.
             </p>
           </div>
 
-          <ul className="video-grid list-reset" role="list">
-            {tutorials.map((item) => (
-              <li key={item.title}>
-                <VideoTutorialCard {...item} />
-              </li>
-            ))}
-          </ul>
+          <ChannelVideoTheater />
         </div>
       </section>
 
       <section className="page-section page-section--tint page-section--cta" aria-label="Next steps">
         <div className="container page-cta">
           <div className="page-cta__copy">
-            <h2 className="page-cta__title">Ready to set up your first zone?</h2>
+            <h2 className="page-cta__title">Ready to start your neighbourhood?</h2>
             <p className="page-cta__text">
-              Start free, or explore smart-home hub setup if you are connecting devices at home.
+              Start free, or see how smart home connects your family's devices and home alarm.
             </p>
           </div>
           <div className="page-cta__actions">

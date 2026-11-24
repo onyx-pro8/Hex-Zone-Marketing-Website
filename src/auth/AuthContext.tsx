@@ -180,7 +180,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     void fetchProfile().then((result) => {
       if (!mounted) return;
-      if (result.data) setUser(normalizeUser(result.data));
+      if (result.data) {
+        setUser(normalizeUser(result.data));
+      } else if (result.error && /401|sign in again|invalid authentication/i.test(result.error)) {
+        logout();
+      }
       setLoading(false);
     });
 

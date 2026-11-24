@@ -11,6 +11,35 @@ export function isPrivateAccount(
   );
 }
 
+function isTechnicalSupport(
+  user: Pick<AuthUser, "platform_staff_role" | "platformStaffRole"> | null | undefined,
+): boolean {
+  const staff = String(user?.platform_staff_role ?? user?.platformStaffRole ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  return staff === "technical_support" || staff === "tech_support";
+}
+
+/** Private-tier administrator. Technical Support is not a system admin. */
+export function isSystemAdministrator(
+  user:
+    | Pick<
+        AuthUser,
+        | "accountType"
+        | "account_type"
+        | "role"
+        | "platform_staff_role"
+        | "platformStaffRole"
+      >
+    | null
+    | undefined,
+): boolean {
+  if (!user || isTechnicalSupport(user)) return false;
+  if (String(user.role ?? "").toLowerCase() !== "administrator") return false;
+  return isPrivateAccount(user);
+}
+
 export function accountTypeLabel(type?: string | null): string {
   const normalized = normalizeAccountType(type);
   if (normalized === "EXCLUSIVE") return "Individual";

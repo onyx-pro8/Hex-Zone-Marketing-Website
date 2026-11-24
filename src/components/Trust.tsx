@@ -5,7 +5,7 @@ const points = [
   },
   {
     title: "Encrypted by design",
-    text: "Traffic is protected in transit so location and account data stay confidential.",
+    text: "Messages and location stay private while they travel between you and your neighbourhood.",
   },
   {
     title: "Audit-ready activity",
@@ -13,7 +13,7 @@ const points = [
   },
   {
     title: "Privacy-first controls",
-    text: "Tune visibility, retention, and guest permissions to match your policy — not the other way around.",
+    text: "You decide who can see what, and for how long.",
   },
 ];
 
@@ -24,10 +24,10 @@ export function Trust() {
         <div className="section-head trust__head">
           <p className="eyebrow">Security & privacy</p>
           <h2 className="section-title" id="trust-title">
-            Trust built into every zone
+            Trust built into every neighbourhood
           </h2>
           <p className="section-sub">
-            Professional-grade controls so families, teams, and organizations can operate with confidence.
+            Clear protections so families and communities can look out for each other with confidence.
           </p>
         </div>
 

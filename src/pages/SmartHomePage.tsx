@@ -2,12 +2,11 @@ import { Link } from "react-router-dom";
 import { DocGuideCard } from "../components/DocGuideCard";
 import { Icon } from "../components/Icon";
 import { PageHero } from "../components/PageHero";
-import { VideoTutorialCard } from "../components/VideoTutorialCard";
 
 const benefits = [
   {
-    title: "Hub-aware zones",
-    text: "Tie smart-home hubs to the zones they protect so presence and access stay in sync.",
+    title: "A home that stays in the picture",
+    text: "Tie your smart home to the neighbourhood it protects, so arrivals and access stay in sync.",
   },
   {
     title: "Device registration",
@@ -19,46 +18,7 @@ const benefits = [
   },
   {
     title: "Alerts that matter",
-    text: "Get notified when hub status, zone activity, or access events need a quick response.",
-  },
-];
-
-const tutorials = [
-  {
-    title: "Smart home overview",
-    description: "How hubs, zones, and account limits work together in Safe Zone Patrol.",
-    duration: "3:55",
-    category: "Overview",
-  },
-  {
-    title: "Registering your first hub",
-    description: "Add a smart-home hub, confirm plan capacity, and link it to a zone.",
-    duration: "5:40",
-    category: "Setup",
-  },
-  {
-    title: "Linking hubs to zones",
-    description: "Map devices to H3 cells or geofences so monitoring stays accurate.",
-    duration: "4:10",
-    category: "Zones",
-  },
-  {
-    title: "Switching active login devices",
-    description: "Use “use this device instead” safely when moving between phone and web sessions.",
-    duration: "2:50",
-    category: "Devices",
-  },
-  {
-    title: "Guest access with smart home context",
-    description: "Issue temporary access that respects hub and zone permissions.",
-    duration: "4:35",
-    category: "Access",
-  },
-  {
-    title: "Troubleshooting hub connectivity",
-    description: "Common connection issues and how to verify hub status in the dashboard.",
-    duration: "6:15",
-    category: "Support",
+    text: "Get notified when your home, your street, or a visitor needs a quick response.",
   },
 ];
 
@@ -66,7 +26,7 @@ const guides = [
   {
     title: "Smart home setup guide",
     description:
-      "End-to-end PDF for registering hubs, linking zones, and confirming plan capacity.",
+      "A simple guide for connecting your home, your family's devices, and your home alarm.",
     type: "PDF" as const,
     pages: "12 pages",
   },
@@ -78,9 +38,9 @@ const guides = [
     pages: "2 pages",
   },
   {
-    title: "Zone mapping reference",
+    title: "Neighbourhood setup reference",
     description:
-      "How to map hubs to H3 cells or geofences, with examples for homes and shared spaces.",
+      "How to connect your home to the neighbourhood, with simple examples for houses and shared spaces.",
     type: "Guide" as const,
     pages: "8 pages",
   },
@@ -99,7 +59,7 @@ export function SmartHomePage() {
       <PageHero
         eyebrow="Product"
         title="Smart home"
-        lead="Connect hubs to your zones, manage devices with clear limits, and keep household protection running smoothly — with video and PDF guides ready when content arrives."
+        lead="Connect your home, look after your family's devices, and keep everyday protection simple — with videos and guides."
       />
 
       <section className="page-section page-section--tint" aria-labelledby="smart-benefits-title">
@@ -110,8 +70,7 @@ export function SmartHomePage() {
               Protection that fits your home network
             </h2>
             <p className="section-sub">
-              Built for families and administrators who want zone awareness without a heavy hardware
-              stack.
+              Built for families who want neighbourhood awareness without a cupboard full of hardware.
             </p>
           </div>
 
@@ -129,25 +88,31 @@ export function SmartHomePage() {
       </section>
 
       <section className="page-section" aria-labelledby="smart-videos-title">
-        <div className="container">
-          <div className="section-head">
+        <div className="container page-cta">
+          <div className="page-cta__copy">
             <p className="eyebrow">Video tutorials</p>
-            <h2 className="section-title" id="smart-videos-title">
+            <h2 className="page-cta__title" id="smart-videos-title">
               Hub setup and device guides
             </h2>
-            <p className="section-sub">
-              Placeholder layouts for upcoming smart-home walkthroughs. Drop in video URLs when
-              content is ready.
+            <p className="page-cta__text">
+              Channel videos play on the How it works page. Watch them there, or open the Safe Zone
+              Patrol channel on YouTube.
             </p>
           </div>
-
-          <ul className="video-grid list-reset" role="list">
-            {tutorials.map((item) => (
-              <li key={item.title}>
-                <VideoTutorialCard {...item} />
-              </li>
-            ))}
-          </ul>
+          <div className="page-cta__actions">
+            <Link className="btn btn--primary" to="/how-it-works#videos">
+              Watch videos
+              <Icon id="i-arrow-right" />
+            </Link>
+            <a
+              className="btn btn--outline"
+              href="https://www.youtube.com/@safezonepatrol"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Watch on YouTube
+            </a>
+          </div>
         </div>
       </section>
 

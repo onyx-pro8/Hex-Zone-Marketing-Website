@@ -361,6 +361,12 @@ export function AccountPage() {
     setStatus("Address and broadcast name updated.");
   }
 
+  const networkId = String(
+    user?.zoneId ??
+      user?.zone_id ??
+      remoteSettings.sharedNotification?.networkId ??
+      "",
+  ).trim();
   const initials = initialsFor(name || user?.name, email || user?.email);
   const thinAvatarPath =
     user?.id != null ? absolutizeAvatarUrl(`/owners/${user.id}/avatar`) : null;
@@ -446,6 +452,7 @@ export function AccountPage() {
               />
             </div>
 
+            <div className="auth-grid">
             <div className="auth-field">
               <label className="auth-label" htmlFor="settings-name">
                 Name
@@ -512,11 +519,21 @@ export function AccountPage() {
               <p className="auth-hint">{accountTypeHint}</p>
             </div>
 
-            <div className="auth-field">
-              <span className="auth-label">Network ID</span>
-              <p className="settings-readonly">
-                {user?.zoneId || user?.zone_id || "—"}
+            <div className="auth-field settings-span">
+              <label className="auth-label" htmlFor="settings-network">
+                Network ID
+              </label>
+              <input
+                id="settings-network"
+                className="auth-input"
+                value={networkId}
+                readOnly
+                disabled
+              />
+              <p className="auth-hint">
+                Shared by everyone on this account. It cannot be changed here.
               </p>
+            </div>
             </div>
 
             <button
@@ -547,6 +564,7 @@ export function AccountPage() {
             className="settings-form"
             onSubmit={(e) => void onSaveIdentity(e)}
           >
+            <div className="auth-grid">
             <div className="auth-field">
               <label className="auth-label" htmlFor="settings-broadcast">
                 Broadcast name
@@ -573,6 +591,7 @@ export function AccountPage() {
               }}
               hint="Start typing and pick a suggestion to set your home address."
             />
+            </div>
 
             <button
               className="btn btn--primary auth-submit"
