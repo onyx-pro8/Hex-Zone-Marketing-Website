@@ -5387,11 +5387,6 @@ p {
 .zones-studio__pick.is-active {
   background: #e0ffe8;
 }
-.zones-studio__toggles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 18px;
-}
 .zones-studio__row {
   display: grid;
   gap: 8px;

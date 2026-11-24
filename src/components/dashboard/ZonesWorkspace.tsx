@@ -194,8 +194,6 @@ export function ZonesWorkspace() {
 
   const [tool, setTool] = useState<DrawTool>("polygon");
   const [measuring, setMeasuring] = useState(false);
-  const [showAll, setShowAll] = useState(true);
-  const [grayscale, setGrayscale] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focus, setFocus] = useState<MapFocusTarget | null>(null);
   const [pan, setPan] = useState<{ center: LatLng; zoom?: number; key: number } | null>(null);
@@ -241,8 +239,6 @@ export function ZonesWorkspace() {
   const [measureA, setMeasureA] = useState<LatLng | null>(null);
   const [measureB, setMeasureB] = useState<LatLng | null>(null);
   const [communalPicker, setCommunalPicker] = useState<SavedZone[] | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-
   const tools = canUseCommunal
     ? DRAW_TOOLS
     : DRAW_TOOLS.filter((item) => item.id !== "communal_id");
@@ -946,8 +942,8 @@ export function ZonesWorkspace() {
         <ZoneDrawMap
           zones={shapes}
           selectedZoneId={selectedId}
-          showAll={showAll}
-          grayscale={grayscale}
+          showAll
+          grayscale={false}
           focus={focus}
           pan={pan}
           draftRing={tool === "polygon" ? ring : []}
@@ -1273,21 +1269,6 @@ export function ZonesWorkspace() {
             </button>
           </div>
           </fieldset>
-
-          <div className="zones-studio__toggles">
-            <label className="dash-check"><input type="checkbox" checked={showAll} onChange={(event) => setShowAll(event.target.checked)} /> Show all zones</label>
-            <label className="dash-check"><input type="checkbox" checked={grayscale} onChange={(event) => setGrayscale(event.target.checked)} /> Grayscale map</label>
-          </div>
-          <AddressAutocompleteInput
-            id="zone-search"
-            label="Search location"
-            value={searchQuery}
-            className="contact__field"
-            onChange={(label, coords) => {
-              setSearchQuery(label);
-              if (coords) panTo(coords);
-            }}
-          />
         </section>
       </div>
 
