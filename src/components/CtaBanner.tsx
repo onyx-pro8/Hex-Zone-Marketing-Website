@@ -22,8 +22,8 @@ export function CtaBanner() {
                 x2="830"
                 y2="0"
               >
-                <stop offset="0" stopColor="#78afff" stopOpacity="0" />
-                <stop offset="1" stopColor="#78afff" />
+                <stop offset="0" stopColor="#39cf62" stopOpacity="0" />
+                <stop offset="1" stopColor="#39cf62" />
               </linearGradient>
             </defs>
             <g fill="none" stroke="url(#cta-streak-fade)" strokeLinecap="round" strokeLinejoin="round">
@@ -36,11 +36,11 @@ export function CtaBanner() {
                 points="745,112 770,98 824,65 905,25 950,45 978,58 1055,21 1110,-6"
               />
             </g>
-            <g fill="none" stroke="#78afff" strokeLinecap="round">
+            <g fill="none" stroke="#39cf62" strokeLinecap="round">
               <polyline className="cta__streak-glow cta__streak--faint" points="628,80 680,51" />
               <polyline className="cta__streak cta__streak--faint" points="628,80 680,51" />
             </g>
-            <g fill="#8fc0ff">
+            <g fill="#42d16b">
               <circle className="cta__node-glow" cx="824" cy="65" r="6" />
               <circle className="cta__node" cx="824" cy="65" r="2" />
             </g>

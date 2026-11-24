@@ -15,7 +15,7 @@ type FeatureCard = {
 const cards: FeatureCard[] = [
   {
     modifier: "feature-card--family",
-    image: "/assets/feature-family.webp",
+    image: "/assets/feature-family.webp?v=4",
     width: 412,
     height: 260,
     alt: "Family of three watching the sunset together",
@@ -33,7 +33,7 @@ const cards: FeatureCard[] = [
   },
   {
     modifier: "feature-card--security",
-    image: "/assets/feature-security.webp",
+    image: "/assets/feature-security.webp?v=4",
     width: 428,
     height: 260,
     alt: "Security officer on patrol outside an office campus",
@@ -57,7 +57,7 @@ const cards: FeatureCard[] = [
   },
   {
     modifier: "feature-card--facility",
-    image: "/assets/feature-facility.webp",
+    image: "/assets/feature-facility.webp?v=4",
     width: 428,
     height: 260,
     alt: "Modern office building with a landscaped entrance",
@@ -75,7 +75,7 @@ const cards: FeatureCard[] = [
   },
   {
     modifier: "feature-card--delivery",
-    image: "/assets/feature-delivery.webp",
+    image: "/assets/feature-delivery.webp?v=4",
     width: 428,
     height: 260,
     alt: "White delivery van parked on a residential street",
@@ -99,7 +99,7 @@ const cards: FeatureCard[] = [
   },
   {
     modifier: "feature-card--developer",
-    image: "/assets/feature-developer.webp",
+    image: "/assets/feature-developer.webp?v=4",
     width: 420,
     height: 260,
     alt: "Developer at a desk with live map dashboards on screen",

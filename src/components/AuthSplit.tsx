@@ -16,7 +16,7 @@ export function AuthSplit({ children, visualTitle, visualLead }: AuthSplitProps)
       <aside className="auth-split__visual" aria-hidden="true">
         <img
           className="auth-split__image"
-          src="/assets/auth-panel.jpg"
+          src="/assets/auth-panel.jpg?v=4"
           alt=""
           width={1200}
           height={1600}

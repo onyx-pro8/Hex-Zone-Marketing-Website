@@ -53,7 +53,7 @@ export function ZonePanel() {
           <figure className="zone-panel__media">
             <img
               className="zone-panel__art"
-              src="/assets/zone-shield.webp"
+              src="/assets/zone-shield.webp?v=4"
               width={992}
               height={620}
               alt="Isometric hexagonal neighbourhood map protected by a glowing shield"

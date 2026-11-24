@@ -27,8 +27,8 @@ import "leaflet/dist/leaflet.css";
 const OSM_TILES = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 const DEFAULT_CENTER: LatLng = [40.7527, -73.9772];
 const USER_ONLINE = "#22C55E";
-const USER_OFFLINE = "#94A3B8";
-const CLUSTER_BORDER = "#7C3CF8";
+const USER_OFFLINE = "#94b89e";
+const CLUSTER_BORDER = "#14532d";
 const OVERLAP_PX = 42;
 
 type MapMember = Pick<Member, "id" | "name" | "location"> & {
@@ -476,10 +476,10 @@ export function CommunityMap({
             center={draftCircle.center}
             radius={draftCircle.radiusMeters}
             pathOptions={{
-              color: "#1652d6",
+              color: "#2e9848",
               weight: 2,
               dashArray: "6 4",
-              fillColor: "#1652d6",
+              fillColor: "#2e9848",
               fillOpacity: 0.16,
             }}
           >
