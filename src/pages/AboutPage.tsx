@@ -48,7 +48,7 @@ export function AboutPage() {
           <div className="content-split__intro">
             <p className="eyebrow">Mission</p>
             <h2 className="section-title" id="about-mission-title">
-              Together. Aware. Protected.
+              Feel safer. Stay connected. Look out for one another.
             </h2>
           </div>
           <div className="content-split__body">

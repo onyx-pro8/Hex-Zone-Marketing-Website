@@ -86,11 +86,11 @@ export function Hero() {
         <div className="hero__copy">
           <h1 className="hero__title" id="hero-title">
             Safe <span className="brand__accent">Zone</span> Patrol
-            <span className="hero__tagline">Together. Aware. Protected.</span>
+            <span className="hero__tagline">Feel safer. Stay connected. Look out for one another.</span>
           </h1>
           <p className="hero__lead">
-            Where location helps connect communities to the messages that matter - See Something.
-            Say Something. Scan to Join
+            A simple way to bring neighbours, families, and safety patrols together. Stay informed,
+            share concerns, and help create a safer place to call home.
           </p>
 
           <div className="hero__actions">
