@@ -822,18 +822,19 @@ p {
   display: block;
   width: fit-content;
   margin-top: 8px;
-  font-size: 50px;
+  font-size: clamp(28px, 3.4vw, 44px);
   line-height: 1.2;
   letter-spacing: 0;
+  white-space: nowrap;
   color: #b6f7d0;
   background: linear-gradient(
     90deg,
     #e7ffef 0%,
-    #b6f7d0 26%,
-    #8eecc0 30%,
-    #6ee0a8 50%,
-    #5ad498 63%,
-    #49c888 67%,
+    #b6f7d0 31%,
+    #8eecc0 35%,
+    #6ee0a8 55%,
+    #5ad498 57%,
+    #49c888 61%,
     #3dbe7c 100%
   );
   -webkit-background-clip: text;
@@ -1140,7 +1141,8 @@ p {
     font-size: clamp(36px, 10vw, 56px);
   }
   .hero__tagline {
-    font-size: clamp(24px, 7vw, 44px);
+    font-size: clamp(26px, 6.4vw, 40px);
+    white-space: normal;
   }
   .hero__lead {
     font-size: clamp(16px, 1.2vw + 12px, 18.5px);

@@ -86,7 +86,7 @@ export function Hero() {
         <div className="hero__copy">
           <h1 className="hero__title" id="hero-title">
             Safe <span className="brand__accent">Zone</span> Patrol
-            <span className="hero__tagline">Weave. Monitor. Protect.</span>
+            <span className="hero__tagline">Together. Aware. Protected.</span>
           </h1>
           <p className="hero__lead">
             The geospatial zone-management platform that keeps you connected — across places,
