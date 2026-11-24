@@ -9,6 +9,7 @@ import {
   LocateFixed,
   Pentagon,
   Plus,
+  X,
   Radar,
   Ruler,
   Trash2,
@@ -199,6 +200,7 @@ export function ZonesWorkspace() {
   const [focus, setFocus] = useState<MapFocusTarget | null>(null);
   const [pan, setPan] = useState<{ center: LatLng; zoom?: number; key: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [composing, setComposing] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [createAsPrimary, setCreateAsPrimary] = useState(false);
@@ -457,6 +459,7 @@ export function ZonesWorkspace() {
     (editingId != null || capabilities?.can_create_zone !== false);
 
   const hint = useMemo(() => {
+    if (!composing) return "Tap New to draw a zone.";
     if (measuring) return measureA && !measureB ? "Tap the second point to measure." : "Tap the map to start a measurement.";
     if (tool === "polygon") {
       if (isClosedRing(ring)) return "Polygon closed. Name it and save, or undo to reshape.";
@@ -471,13 +474,14 @@ export function ZonesWorkspace() {
     if (tool === "communal_id") return "Generate or validate an ID, then save it. Attach it on a primary zone.";
     if (tool === "government_local_code") return "Enter an address and validate it to draw the city area.";
     return "Search a place or tap the map to set the monument.";
-  }, [cells.length, circleCenter, circleRadius, h3Resolution, measureA, measureB, measuring, proximitySource, ring, tool]);
+  }, [cells.length, circleCenter, circleRadius, composing, h3Resolution, measureA, measureB, measuring, proximitySource, ring, tool]);
 
   function panTo(center: LatLng, zoom = 16) {
     setPan({ center, zoom, key: Date.now() });
   }
 
   function onMapClick(point: LatLng, zoom = 15) {
+    if (!composing) return;
     if (measuring) {
       if (!measureA || measureB) {
         setMeasureA(point);
@@ -521,12 +525,25 @@ export function ZonesWorkspace() {
   }
 
   function startNew() {
+    setComposing(true);
     setEditingId(null);
     setName("");
     setDescription("");
     setCommunalIds([]);
     clearDraft();
-    setStatus("New zone. Draw it, name it, then save.");
+    setStatus("New zone. Choose a type, draw it, then save.");
+    setError("");
+  }
+
+  function cancelCompose() {
+    setComposing(false);
+    setEditingId(null);
+    setName("");
+    setDescription("");
+    setCommunalIds([]);
+    setMeasuring(false);
+    clearDraft();
+    setStatus("");
     setError("");
   }
 
@@ -539,6 +556,7 @@ export function ZonesWorkspace() {
       );
       return;
     }
+    setComposing(true);
     const next = toolForZone(zone);
     const cfg = configRecord(zone);
     setTool(next);
@@ -904,7 +922,7 @@ export function ZonesWorkspace() {
       setError(result.error);
       return;
     }
-    if (editingId === String(zone.id)) startNew();
+    if (editingId === String(zone.id)) cancelCompose();
     setStatus("Zone deleted.");
     await load();
   }
@@ -950,8 +968,8 @@ export function ZonesWorkspace() {
           {tool === "polygon" ? (
             <MapAction
               label="Finish"
-              tone={ring.length >= 3 && !isClosedRing(ring) ? "accent" : undefined}
-              disabled={ring.length < 3 || isClosedRing(ring)}
+              tone={composing && ring.length >= 3 && !isClosedRing(ring) ? "accent" : undefined}
+              disabled={!composing || ring.length < 3 || isClosedRing(ring)}
               onClick={() => setRing((current) => finishPolygon(current))}
             >
               <CheckCircle2 size={20} strokeWidth={2.4} />
@@ -959,6 +977,7 @@ export function ZonesWorkspace() {
           ) : null}
           <MapAction
             label="Undo"
+            disabled={!composing}
             onClick={() => {
               if (tool === "polygon") setRing((current) => (isClosedRing(current) ? openRing(current).slice(0, -1) : current.slice(0, -1)));
               else if (tool === "grid") setCells((current) => current.slice(0, -1));
@@ -967,10 +986,10 @@ export function ZonesWorkspace() {
           >
             <Undo2 size={20} strokeWidth={2.4} />
           </MapAction>
-          <MapAction label="Clear" tone="danger" onClick={clearDraft}>
+          <MapAction label="Clear" tone="danger" disabled={!composing} onClick={clearDraft}>
             <Trash2 size={20} strokeWidth={2.4} />
           </MapAction>
-          <MapAction label="Measure" tone={measuring ? "on" : undefined} onClick={() => setMeasuring((value) => !value)}>
+          <MapAction label="Measure" tone={measuring ? "on" : undefined} disabled={!composing} onClick={() => setMeasuring((value) => !value)}>
             <Ruler size={20} strokeWidth={2.4} />
           </MapAction>
           <MapAction label="Locate" onClick={locateMe}>
@@ -999,6 +1018,7 @@ export function ZonesWorkspace() {
               aria-selected={active}
               className={`zone-tool${active ? " is-active" : ""}`}
               style={{ ["--tool" as string]: meta.accent }}
+              disabled={!composing}
               onClick={() => {
                 setTool(item.id);
                 setMeasuring(false);
@@ -1013,11 +1033,24 @@ export function ZonesWorkspace() {
         <section className="dash-card">
           <div className="dash-card__head">
             <h2 className="community-panel__title">{editingId ? "Edit zone" : "Draw a zone"}</h2>
-            <button type="button" className="zone-text-btn" onClick={startNew}>
-              <Plus size={15} strokeWidth={2.4} />
-              New
-            </button>
+            {composing ? (
+              <button type="button" className="zone-text-btn" onClick={cancelCompose}>
+                <X size={15} strokeWidth={2.4} />
+                Cancel
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="zone-text-btn"
+                disabled={capabilities?.can_create_zone === false}
+                onClick={startNew}
+              >
+                <Plus size={15} strokeWidth={2.4} />
+                New
+              </button>
+            )}
           </div>
+          <fieldset className="zones-studio__details" disabled={!composing}>
           {error ? <p className="community-page__status is-error">{error}</p> : null}
           {status ? <p className="dash-status">{status}</p> : null}
           {!editingId && capabilities?.can_create_zone === false ? (
@@ -1239,6 +1272,7 @@ export function ZonesWorkspace() {
               {saving ? "Saving…" : tool === "communal_id" ? "Save Communal ID" : editingId ? "Update zone" : "Save zone"}
             </button>
           </div>
+          </fieldset>
 
           <div className="zones-studio__toggles">
             <label className="dash-check"><input type="checkbox" checked={showAll} onChange={(event) => setShowAll(event.target.checked)} /> Show all zones</label>

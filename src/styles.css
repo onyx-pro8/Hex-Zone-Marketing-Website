@@ -5154,6 +5154,24 @@ p {
   color: var(--tool, #2f80ed);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--tool, #2f80ed) 22%, transparent);
 }
+.zone-tool:disabled {
+  color: #9aa8bc;
+  border-color: #e4ebf3;
+  background: #f7f9fc;
+  box-shadow: none;
+  cursor: default;
+}
+.zones-studio__details {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+  display: grid;
+  gap: 12px;
+}
+.zones-studio__details:disabled {
+  opacity: 0.55;
+}
 .zone-icon-btn__wrap {
   display: grid;
   justify-items: center;
