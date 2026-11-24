@@ -563,6 +563,7 @@ export function ZonesWorkspace() {
     setSelectedId(String(zone.id));
     setName(typeof zone.name === "string" ? zone.name : "");
     setDescription(typeof zone.description === "string" ? zone.description : "");
+    setCreateAsPrimary(zone.is_primary === true);
     setCommunalIds(communalIdsOnZone(zone));
     clearDraft();
     const rings = readZoneRings(zone);
@@ -747,11 +748,10 @@ export function ZonesWorkspace() {
     }
 
     const ownerStamp = networkId ? { id: networkId, zone_id: networkId } : {};
-    const tier = !editingId && isAdmin ? { is_primary: createAsPrimary } : {};
-    const editingZone = editingId
-      ? zones.find((zone) => String(zone.id) === editingId)
-      : undefined;
-    const workingAsPrimary = editingZone ? editingZone.is_primary === true : createAsPrimary;
+    const tier = canUseCommunal ? { is_primary: createAsPrimary } : {};
+    const workingAsPrimary = canUseCommunal
+      ? createAsPrimary
+      : Boolean(editingId && zones.find((zone) => String(zone.id) === editingId)?.is_primary);
     const attach =
       canUseCommunal && workingAsPrimary
         ? {
@@ -890,6 +890,7 @@ export function ZonesWorkspace() {
           config: payload.config,
           h3_cells: payload.h3_cells,
           geo_fence_polygon: payload.geo_fence_polygon,
+          ...tier,
         })
       : await createZone(payload);
     setSaving(false);
@@ -935,7 +936,13 @@ export function ZonesWorkspace() {
     );
   }
 
-  const showTier = !editingId && isAdmin && tool !== "communal_id" && capabilities?.can_create_zone !== false;
+  const editingZone = editingId
+    ? zones.find((zone) => String(zone.id) === editingId)
+    : undefined;
+  const showTier = canUseCommunal && tool !== "communal_id" && (Boolean(editingId) || capabilities?.can_create_zone !== false);
+  const primaryChoiceDisabled =
+    capabilities?.can_create_primary === false && editingZone?.is_primary !== true;
+  const secondaryChoiceDisabled = !editingId && capabilities?.can_create_secondary === false;
   const showAttach = canUseCommunal && tool !== "communal_id" && (editingId ? true : createAsPrimary);
 
   return (
@@ -1073,11 +1080,11 @@ export function ZonesWorkspace() {
             <div className="dash-block">
               <p className="dash-label">Zone tier</p>
               <div className="zones-studio__split">
-                <button type="button" className={`dash-choice${createAsPrimary ? " is-active" : ""}`} disabled={capabilities?.can_create_primary === false} onClick={() => setCreateAsPrimary(true)}>
+                <button type="button" className={`dash-choice${createAsPrimary ? " is-active" : ""}`} disabled={primaryChoiceDisabled} onClick={() => setCreateAsPrimary(true)}>
                   <strong>Primary</strong>
                   <span>Visible to all members</span>
                 </button>
-                <button type="button" className={`dash-choice${!createAsPrimary ? " is-active" : ""}`} disabled={capabilities?.can_create_secondary === false} onClick={() => setCreateAsPrimary(false)}>
+                <button type="button" className={`dash-choice${!createAsPrimary ? " is-active" : ""}`} disabled={secondaryChoiceDisabled} onClick={() => setCreateAsPrimary(false)}>
                   <strong>Secondary</strong>
                   <span>Creator only</span>
                 </button>
