@@ -3800,7 +3800,7 @@ p {
   justify-items: center;
 }
 .settings-page__inner {
-  width: min(100%, 640px);
+  width: 100%;
   margin-inline: auto;
   display: grid;
   gap: 28px;
@@ -3819,7 +3819,17 @@ p {
   margin: 0;
   color: var(--ink-500);
   font: 400 15px/1.55 var(--font-body);
-  max-width: 46ch;
+}
+.settings-page .auth-grid {
+  align-items: start;
+}
+.settings-page .auth-submit {
+  width: auto;
+  min-width: 200px;
+  justify-self: start;
+}
+.settings-page .settings-span {
+  grid-column: 1 / -1;
 }
 .settings-section {
   display: grid;
