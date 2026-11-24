@@ -71,8 +71,8 @@ export function HowItWorksPage() {
               Learn at your own pace
             </h2>
             <p className="section-sub">
-              Walkthroughs from the Safe Zone Patrol channel play here. Open any video on YouTube
-              if you would rather watch it there.
+              Each Safe Zone Patrol walkthrough plays here. Open any video on YouTube if you would
+              rather watch it there.
             </p>
           </div>
 
