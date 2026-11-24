@@ -40,15 +40,12 @@ export function ChannelVideoTheater() {
         </div>
       </div>
 
-      <ul className="theater__list list-reset" aria-label="Safe Zone Patrol videos">
-        {CHANNEL_VIDEOS.map((video) => {
-          const selected = video.id === active.id;
-          return (
+      <ul className="theater__list list-reset" aria-label="More Safe Zone Patrol videos">
+        {CHANNEL_VIDEOS.filter((video) => video.id !== active.id).map((video) => (
             <li key={video.id}>
               <button
                 type="button"
-                className={selected ? "theater__item is-active" : "theater__item"}
-                aria-current={selected ? "true" : undefined}
+                className="theater__item"
                 onClick={() => {
                   setActiveId(video.id);
                   setAutoplay(true);
@@ -68,8 +65,7 @@ export function ChannelVideoTheater() {
                 </span>
               </button>
             </li>
-          );
-        })}
+        ))}
       </ul>
     </div>
   );
