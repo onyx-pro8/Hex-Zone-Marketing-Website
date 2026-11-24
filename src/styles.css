@@ -5123,21 +5123,52 @@ p {
   gap: 12px;
   min-width: 0;
 }
-.zones-studio__new {
-  display: block;
+.zone-detail-modal {
+  position: fixed;
+  z-index: 80;
+  top: 72px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: 16px 20px 96px;
+  background: rgba(4, 48, 15, 0.35);
 }
-.zones-studio__new .zone-save {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
+.zone-detail-modal__card {
+  width: min(520px, 100%);
+  max-height: 100%;
+  overflow: auto;
 }
-.zones-studio__new .zone-save.is-cancel {
+.zone-detail-modal__card .dash-card__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   background: #fff;
-  color: var(--ink-900);
-  border: 1.5px solid rgba(52, 151, 75, 0.45);
-  box-shadow: none;
+}
+.zone-detail-modal .dash-actions .zone-save {
+  flex: 1;
+}
+.zone-fab {
+  position: fixed;
+  z-index: 85;
+  right: 24px;
+  bottom: 24px;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #1f9a4c 0%, #157a3c 100%);
+  color: #fff;
+  box-shadow: 0 12px 24px -8px rgba(21, 122, 60, 0.9);
+  cursor: pointer;
+}
+.zone-fab:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 .zones-studio__tools {
   position: static;

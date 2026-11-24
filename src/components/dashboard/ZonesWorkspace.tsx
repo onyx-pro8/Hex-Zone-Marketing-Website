@@ -205,6 +205,7 @@ export function ZonesWorkspace() {
   const [pan, setPan] = useState<{ center: LatLng; zoom?: number; key: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [keyOpen, setKeyOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -543,10 +544,12 @@ export function ZonesWorkspace() {
     clearDraft();
     setStatus("New zone. Choose a type, draw it, then save.");
     setError("");
+    setDetailsOpen(true);
   }
 
   function cancelCompose() {
     setComposing(false);
+    setDetailsOpen(false);
     setEditingId(null);
     setName("");
     setDescription("");
@@ -642,6 +645,16 @@ export function ZonesWorkspace() {
     if (shape) setFocus(focusTargetForZone(shape));
     setStatus(`Editing ${zoneTitle(zone)}.`);
     setError("");
+    setDetailsOpen(true);
+  }
+
+  function openDetails() {
+    if (!composing) startNew();
+    else setDetailsOpen(true);
+  }
+
+  function closeDetails() {
+    setDetailsOpen(false);
   }
 
   async function openCommunal(row: CommunalIdRow) {
@@ -1054,10 +1067,20 @@ export function ZonesWorkspace() {
           );
         })}
       </div>
-        {composing ? (
-        <section className="dash-card">
+        {detailsOpen ? (
+        <div className="zone-detail-modal" role="presentation" onClick={closeDetails}>
+        <section
+          className="dash-card zone-detail-modal__card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="zone-detail-title"
+          onClick={(event) => event.stopPropagation()}
+        >
           <div className="dash-card__head">
-            <h2 className="community-panel__title">{editingId ? "Edit zone" : "Draw a zone"}</h2>
+            <h2 className="community-panel__title" id="zone-detail-title">{editingId ? "Edit zone" : "Draw a zone"}</h2>
+            <button type="button" className="ua-modal__close" aria-label="Close zone details" onClick={closeDetails}>
+              <X size={16} />
+            </button>
           </div>
           <fieldset className="zones-studio__details">
           {error ? <p className="community-page__status is-error">{error}</p> : null}
@@ -1277,34 +1300,20 @@ export function ZonesWorkspace() {
           ) : null}
 
           <div className="dash-actions">
+            <button type="button" className="zone-text-btn" onClick={cancelCompose}>
+              Discard
+            </button>
             <button type="button" className="zone-save" disabled={!canSave} onClick={() => void save()}>
               {saving ? "Saving…" : tool === "communal_id" ? "Save Communal ID" : editingId ? "Update zone" : "Save zone"}
             </button>
           </div>
           </fieldset>
         </section>
+        </div>
         ) : null}
       </div>
 
       <div className="zones-studio__sheet">
-        <div className="zones-studio__new">
-          {composing ? (
-            <button type="button" className="zone-save is-cancel" onClick={cancelCompose}>
-              <X size={15} strokeWidth={2.4} />
-              Cancel
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="zone-save"
-              disabled={capabilities?.can_create_zone === false}
-              onClick={startNew}
-            >
-              <Plus size={15} strokeWidth={2.4} />
-              New
-            </button>
-          )}
-        </div>
         <section className="community-panel dash-panel" aria-labelledby="zone-list-title">
           <div className="community-panel__head">
             <h2 className="community-panel__title" id="zone-list-title">Zones</h2>
@@ -1383,6 +1392,16 @@ export function ZonesWorkspace() {
             </ul>
         </section>
       </div>
+      <button
+        type="button"
+        className="zone-fab"
+        aria-label={detailsOpen ? "Close zone details" : "New zone"}
+        aria-expanded={detailsOpen}
+        disabled={!composing && capabilities?.can_create_zone === false}
+        onClick={detailsOpen ? closeDetails : openDetails}
+      >
+        {detailsOpen ? <X size={22} strokeWidth={2.4} /> : <Plus size={22} strokeWidth={2.4} />}
+      </button>
       <UniversalAccessKeyModal
         open={keyOpen}
         onClose={() => setKeyOpen(false)}
