@@ -9,8 +9,6 @@ import {
   LocateFixed,
   Pentagon,
   KeyRound,
-  Plus,
-  X,
   Radar,
   Ruler,
   Trash2,
@@ -205,7 +203,6 @@ export function ZonesWorkspace() {
   const [pan, setPan] = useState<{ center: LatLng; zoom?: number; key: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
   const [keyOpen, setKeyOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -463,7 +460,7 @@ export function ZonesWorkspace() {
     (editingId != null || capabilities?.can_create_zone !== false);
 
   const hint = useMemo(() => {
-    if (!composing) return "Tap New to draw a zone.";
+    if (!composing) return "Choose a zone type to start drawing.";
     if (measuring) return measureA && !measureB ? "Tap the second point to measure." : "Tap the map to start a measurement.";
     if (tool === "polygon") {
       if (isClosedRing(ring) || ring.length >= 3) {
@@ -535,21 +532,20 @@ export function ZonesWorkspace() {
     setMatchedZones([]);
   }
 
-  function startNew() {
+  function startNew(next: DrawTool) {
     setComposing(true);
+    setTool(next);
     setEditingId(null);
     setName("");
     setDescription("");
     setCommunalIds([]);
     clearDraft();
-    setStatus("New zone. Choose a type, draw it, then save.");
+    setStatus("Draw the zone, then save. Tap the selected type again to cancel.");
     setError("");
-    setDetailsOpen(true);
   }
 
   function cancelCompose() {
     setComposing(false);
-    setDetailsOpen(false);
     setEditingId(null);
     setName("");
     setDescription("");
@@ -643,18 +639,26 @@ export function ZonesWorkspace() {
     }
     const shape = zoneToMapShape(zone);
     if (shape) setFocus(focusTargetForZone(shape));
-    setStatus(`Editing ${zoneTitle(zone)}.`);
+    setStatus(`Editing ${zoneTitle(zone)}. Tap the selected type again to cancel.`);
     setError("");
-    setDetailsOpen(true);
   }
 
-  function openDetails() {
-    if (!composing) startNew();
-    else setDetailsOpen(true);
-  }
-
-  function closeDetails() {
-    setDetailsOpen(false);
+  function selectTool(next: DrawTool) {
+    if (composing && tool === next) {
+      cancelCompose();
+      return;
+    }
+    if (!composing) {
+      if (capabilities?.can_create_zone === false) {
+        setError(capabilities.reason ?? "You cannot create more zones.");
+        return;
+      }
+      startNew(next);
+      return;
+    }
+    setTool(next);
+    setMeasuring(false);
+    clearDraft();
   }
 
   async function openCommunal(row: CommunalIdRow) {
@@ -1046,7 +1050,7 @@ export function ZonesWorkspace() {
         {tools.map((item) => {
           const meta = TOOL_ICON[item.id];
           const Icon = meta.icon;
-          const active = tool === item.id;
+          const active = composing && tool === item.id;
           return (
             <button
               key={item.id}
@@ -1055,11 +1059,8 @@ export function ZonesWorkspace() {
               aria-selected={active}
               className={`zone-tool${active ? " is-active" : ""}`}
               style={{ ["--tool" as string]: meta.accent }}
-              disabled={!composing}
-              onClick={() => {
-                setTool(item.id);
-                setMeasuring(false);
-              }}
+              disabled={!composing && capabilities?.can_create_zone === false}
+              onClick={() => selectTool(item.id)}
             >
               <Icon size={16} strokeWidth={2.3} />
               {item.label}
@@ -1067,20 +1068,16 @@ export function ZonesWorkspace() {
           );
         })}
       </div>
-        {detailsOpen ? (
-        <div className="zone-detail-modal" role="presentation" onClick={closeDetails}>
+        {composing ? (
+        <div className="zone-detail-modal">
         <section
           className="dash-card zone-detail-modal__card"
           role="dialog"
-          aria-modal="true"
+          aria-modal="false"
           aria-labelledby="zone-detail-title"
-          onClick={(event) => event.stopPropagation()}
         >
           <div className="dash-card__head">
             <h2 className="community-panel__title" id="zone-detail-title">{editingId ? "Edit zone" : "Draw a zone"}</h2>
-            <button type="button" className="ua-modal__close" aria-label="Close zone details" onClick={closeDetails}>
-              <X size={16} />
-            </button>
           </div>
           <fieldset className="zones-studio__details">
           {error ? <p className="community-page__status is-error">{error}</p> : null}
@@ -1300,9 +1297,6 @@ export function ZonesWorkspace() {
           ) : null}
 
           <div className="dash-actions">
-            <button type="button" className="zone-text-btn" onClick={cancelCompose}>
-              Discard
-            </button>
             <button type="button" className="zone-save" disabled={!canSave} onClick={() => void save()}>
               {saving ? "Saving…" : tool === "communal_id" ? "Save Communal ID" : editingId ? "Update zone" : "Save zone"}
             </button>
@@ -1392,16 +1386,6 @@ export function ZonesWorkspace() {
             </ul>
         </section>
       </div>
-      <button
-        type="button"
-        className="zone-fab"
-        aria-label={detailsOpen ? "Close zone details" : "New zone"}
-        aria-expanded={detailsOpen}
-        disabled={!composing && capabilities?.can_create_zone === false}
-        onClick={detailsOpen ? closeDetails : openDetails}
-      >
-        {detailsOpen ? <X size={22} strokeWidth={2.4} /> : <Plus size={22} strokeWidth={2.4} />}
-      </button>
       <UniversalAccessKeyModal
         open={keyOpen}
         onClose={() => setKeyOpen(false)}
