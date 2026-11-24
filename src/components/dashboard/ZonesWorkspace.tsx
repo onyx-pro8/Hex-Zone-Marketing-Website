@@ -58,6 +58,9 @@ import {
   configRecord,
   finishPolygon,
   formatArea,
+  insertRingPoint,
+  moveRingVertex,
+  removeRingVertex,
   formatAreaLimit,
   governmentReferenceId,
   h3CellsAreaM2,
@@ -461,10 +464,11 @@ export function ZonesWorkspace() {
     if (!composing) return "Tap New to draw a zone.";
     if (measuring) return measureA && !measureB ? "Tap the second point to measure." : "Tap the map to start a measurement.";
     if (tool === "polygon") {
-      if (isClosedRing(ring)) return "Polygon closed. Name it and save, or undo to reshape.";
+      if (isClosedRing(ring) || ring.length >= 3) {
+        return "Drag a point to reshape. Tap a point to remove it. Tap the map to add one.";
+      }
       if (ring.length === 0) return "Tap the map to drop vertices.";
-      if (ring.length < 3) return `Add ${3 - ring.length} more point${ring.length === 2 ? "" : "s"}.`;
-      return "Tap the blue Close marker to finish the shape.";
+      return `Add ${3 - ring.length} more point${ring.length === 2 ? "" : "s"}.`;
     }
     if (tool === "circle") return circleCenter && circleRadius === 0 ? "Tap again to set the radius." : "Tap the center, then tap the edge.";
     if (tool === "grid") return `Tap hexes to toggle them · ${cells.length} selected · resolution ${h3Resolution}.`;
@@ -490,7 +494,13 @@ export function ZonesWorkspace() {
       }
       return;
     }
-    if (tool === "polygon") setRing((current) => appendPolygonPoint(current, point, zoom));
+    if (tool === "polygon") {
+      setRing((current) =>
+        editingId && current.length >= 3
+          ? insertRingPoint(current, point, true)
+          : appendPolygonPoint(current, point, zoom),
+      );
+    }
     if (tool === "circle") {
       if (!circleCenter || circleRadius > 0) {
         setCircleCenter(point);
@@ -966,6 +976,11 @@ export function ZonesWorkspace() {
           draftColor={TOOL_COLOR[tool]}
           onMapClick={onMapClick}
           onClosePolygon={() => setRing((current) => finishPolygon(current))}
+          onVertexMove={(index, point) => setRing((current) => moveRingVertex(current, index, point))}
+          onVertexRemove={(index) => setRing((current) => removeRingVertex(current, index))}
+          onCircleCenter={setCircleCenter}
+          onCircleRadius={setCircleRadius}
+          hideZoneId={composing && editingId ? editingId : null}
         />
         <div className="zones-studio__chrome">
           <p className="zones-studio__hint">{hint}</p>

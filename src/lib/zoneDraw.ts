@@ -82,6 +82,55 @@ export function openRing(points: LatLng[]): LatLng[] {
   return points.slice(0, -1);
 }
 
+function distanceToSegment(point: LatLng, start: LatLng, end: LatLng): number {
+  const dx = end[1] - start[1];
+  const dy = end[0] - start[0];
+  const length = dx * dx + dy * dy;
+  if (length === 0) return Math.hypot(point[0] - start[0], point[1] - start[1]);
+  const t = Math.max(0, Math.min(1, ((point[1] - start[1]) * dx + (point[0] - start[0]) * dy) / length));
+  return Math.hypot(point[0] - (start[0] + t * dy), point[1] - (start[1] + t * dx));
+}
+
+/** Insert a point on the nearest edge. A closed outline keeps its closing vertex. */
+export function insertRingPoint(points: LatLng[], point: LatLng, closeLoop = false): LatLng[] {
+  const closed = isClosedRing(points);
+  const open = closed ? points.slice(0, -1) : [...points];
+  if (open.length < 2) return [...open, point];
+  const segments = closeLoop || closed ? open.length : Math.max(0, open.length - 1);
+  let best = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (let index = 0; index < segments; index += 1) {
+    const start = open[index];
+    const end = open[(index + 1) % open.length];
+    const distance = distanceToSegment(point, start, end);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = index;
+    }
+  }
+  const next = [...open.slice(0, best + 1), point, ...open.slice(best + 1)];
+  return closed ? [...next, next[0]] : next;
+}
+
+export function moveRingVertex(points: LatLng[], index: number, point: LatLng): LatLng[] {
+  if (index < 0 || index >= points.length) return points;
+  const next = points.map((item, itemIndex) => (itemIndex === index ? point : item));
+  if (isClosedRing(points)) {
+    if (index === 0) next[next.length - 1] = point;
+    if (index === points.length - 1) next[0] = point;
+  }
+  return next;
+}
+
+export function removeRingVertex(points: LatLng[], index: number): LatLng[] {
+  const closed = isClosedRing(points);
+  const open = closed ? points.slice(0, -1) : points;
+  if (index < 0 || index >= open.length) return points;
+  const next = open.filter((_, itemIndex) => itemIndex !== index);
+  if (closed && next.length >= 3) return [...next, next[0]];
+  return next;
+}
+
 export function ringToGeoJson(points: LatLng[]): {
   type: "Polygon";
   coordinates: [number, number][][];

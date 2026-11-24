@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo } from "react";
+import { Fragment, useEffect, useMemo, useRef } from "react";
 import { divIcon, DomEvent } from "leaflet";
 import {
   Circle,
@@ -40,7 +40,68 @@ type Props = {
   draftColor: string;
   onMapClick: (point: LatLng, zoom: number) => void;
   onClosePolygon?: () => void;
+  onVertexMove?: (index: number, point: LatLng) => void;
+  onVertexRemove?: (index: number) => void;
+  onCircleCenter?: (point: LatLng) => void;
+  onCircleRadius?: (meters: number) => void;
+  hideZoneId?: string | null;
 };
+
+const HANDLE_ICON = divIcon({
+  className: "zone-vertex-wrap",
+  html: '<div class="zone-handle"></div>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+});
+
+function pointEastOf(center: LatLng, radiusMeters: number): LatLng {
+  const metersPerDegree = 111320 * Math.cos((center[0] * Math.PI) / 180);
+  const delta = metersPerDegree > 1 ? radiusMeters / metersPerDegree : 0;
+  return [center[0], center[1] + delta];
+}
+
+function VertexHandle({
+  position,
+  index,
+  onMove,
+  onRemove,
+}: {
+  position: LatLng;
+  index: number;
+  onMove?: (index: number, point: LatLng) => void;
+  onRemove?: (index: number) => void;
+}) {
+  const dragged = useRef(false);
+  return (
+    <Marker
+      position={position}
+      icon={HANDLE_ICON}
+      draggable={Boolean(onMove)}
+      zIndexOffset={700}
+      eventHandlers={{
+        dragstart() {
+          dragged.current = true;
+        },
+        drag(event) {
+          const latlng = event.target.getLatLng();
+          onMove?.(index, [latlng.lat, latlng.lng]);
+        },
+        dragend(event) {
+          const latlng = event.target.getLatLng();
+          onMove?.(index, [latlng.lat, latlng.lng]);
+          window.setTimeout(() => {
+            dragged.current = false;
+          }, 0);
+        },
+        click(event) {
+          DomEvent.stopPropagation(event.originalEvent);
+          if (dragged.current) return;
+          onRemove?.(index);
+        },
+      }}
+    />
+  );
+}
 
 function ClickCapture({ onMapClick }: { onMapClick: (point: LatLng, zoom: number) => void }) {
   const map = useMap();
@@ -97,10 +158,15 @@ export function ZoneDrawMap({
   draftColor,
   onMapClick,
   onClosePolygon,
+  onVertexMove,
+  onVertexRemove,
+  onCircleCenter,
+  onCircleRadius,
+  hideZoneId,
 }: Props) {
-  const visible = showAll
-    ? zones
-    : zones.filter((zone) => zone.id === selectedZoneId);
+  const visible = (showAll ? zones : zones.filter((zone) => zone.id === selectedZoneId)).filter(
+    (zone) => zone.id !== hideZoneId,
+  );
   const center = pan?.center ?? visible[0]?.marker ?? DEFAULT_CENTER;
   const closed =
     draftRing.length >= 4 &&
@@ -115,7 +181,7 @@ export function ZoneDrawMap({
           ? '<div class="zone-vertex zone-vertex--close">Close</div>'
           : '<div class="zone-vertex zone-vertex--start">Start</div>',
         iconSize: [72, 72],
-        iconAnchor: [36, 36],
+        iconAnchor: [36, 108],
       }),
     [canClose],
   );
@@ -180,43 +246,37 @@ export function ZoneDrawMap({
             pathOptions={{ color: "#F59E0B", weight: 2, fillColor: "#F59E0B", fillOpacity: 0.28 }}
           />
         ))}
-        {draftRing.length >= 2 ? (
-          <Polyline positions={draftRing} pathOptions={{ color: draftColor, weight: 2, dashArray: closed ? undefined : "6 8" }} />
+        {draftRing.length >= 2 && draftRing.length < 3 ? (
+          <Polyline positions={draftRing} pathOptions={{ color: draftColor, weight: 2, dashArray: "6 8" }} />
         ) : null}
-        {closed ? (
+        {draftRing.length >= 3 ? (
           <Polygon
-            positions={draftRing}
+            positions={closed ? draftRing : [...draftRing, draftRing[0]]}
             pathOptions={{ color: draftColor, weight: 2, fillColor: draftColor, fillOpacity: 0.22 }}
           />
         ) : null}
-        {draftRing[0] && !closed ? (
+        {draftRing[0] && canClose ? (
           <Marker
             position={draftRing[0]}
             icon={startIcon}
-            zIndexOffset={800}
+            zIndexOffset={900}
             eventHandlers={{
               click(event) {
                 DomEvent.stopPropagation(event.originalEvent);
-                if (canClose) onClosePolygon?.();
+                onClosePolygon?.();
               },
             }}
           />
         ) : null}
-        {draftRing.map((point, index) =>
-          index === 0 && !closed ? null : (
-            <CircleMarker
-              key={`vertex-${index}`}
-              center={point}
-              radius={8}
-              pathOptions={{
-                color: "#2F80ED",
-                fillColor: "#ffffff",
-                fillOpacity: 1,
-                weight: 3,
-              }}
-            />
-          ),
-        )}
+        {(closed ? draftRing.slice(0, -1) : draftRing).map((point, index) => (
+          <VertexHandle
+            key={`vertex-${index}`}
+            index={index}
+            position={point}
+            onMove={onVertexMove}
+            onRemove={onVertexRemove}
+          />
+        ))}
         {draftCircle && draftCircle.radiusMeters > 0 ? (
           <Circle
             center={draftCircle.center}
@@ -224,7 +284,32 @@ export function ZoneDrawMap({
             pathOptions={{ color: draftColor, weight: 2, fillColor: draftColor, fillOpacity: 0.2 }}
           />
         ) : null}
-        {draftMarker ? (
+        {draftCircle && draftCircle.radiusMeters > 0 && onCircleRadius ? (
+          <VertexHandle
+            index={0}
+            position={pointEastOf(draftCircle.center, draftCircle.radiusMeters)}
+            onMove={(_index, point) => {
+              const earth = 6371000;
+              const toRad = (value: number) => (value * Math.PI) / 180;
+              const dLat = toRad(point[0] - draftCircle.center[0]);
+              const dLng = toRad(point[1] - draftCircle.center[1]);
+              const h =
+                Math.sin(dLat / 2) ** 2 +
+                Math.cos(toRad(draftCircle.center[0])) *
+                  Math.cos(toRad(point[0])) *
+                  Math.sin(dLng / 2) ** 2;
+              const meters = 2 * earth * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+              onCircleRadius(Math.max(1, Math.round(meters)));
+            }}
+          />
+        ) : null}
+        {draftMarker && onCircleCenter ? (
+          <VertexHandle
+            index={0}
+            position={draftMarker}
+            onMove={(_index, point) => onCircleCenter(point)}
+          />
+        ) : draftMarker ? (
           <CircleMarker
             center={draftMarker}
             radius={8}
