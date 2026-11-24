@@ -713,7 +713,7 @@ p {
     linear-gradient(160deg, #021406 0%, #062e10 42%, #0a3815 100%);
 }
 
-/* Full-size hero image; city composition lives on the right */
+/* Full-bleed hero image; the city spans the width */
 .hero__media {
   position: absolute;
   inset: 0;
@@ -725,7 +725,7 @@ p {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: right center;
+  object-position: center center;
   display: block;
 }
 .hero__media::after {
@@ -735,9 +735,9 @@ p {
   background:
     linear-gradient(
       90deg,
-      rgba(2, 20, 6, 0.72) 0%,
-      rgba(3, 30, 10, 0.38) 38%,
-      transparent 64%
+      rgba(2, 20, 6, 0.62) 0%,
+      rgba(3, 30, 10, 0.28) 28%,
+      transparent 52%
     ),
     linear-gradient(
       180deg,
@@ -1152,7 +1152,7 @@ p {
     margin-top: 28px;
   }
   .hero__media-img {
-    object-position: 70% center;
+    object-position: center center;
   }
 
   /* Feature strip: 3 + 2, centred, no dividers */
