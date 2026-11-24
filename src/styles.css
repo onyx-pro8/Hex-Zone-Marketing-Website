@@ -5157,6 +5157,9 @@ p {
 .zones-studio__save {
   position: relative;
   z-index: 85;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 .zones-studio__save .zone-save {
   width: 100%;
@@ -5166,10 +5169,6 @@ p {
   color: var(--ink-900);
   border: 1.5px solid rgba(52, 151, 75, 0.45);
   box-shadow: none;
-}
-.zone-detail-modal .dash-actions .zone-save {
-  flex: 1;
-  width: 100%;
 }
 .zones-studio__tools {
   position: static;
