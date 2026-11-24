@@ -99,8 +99,8 @@ const TOOL_COLOR: Record<DrawTool, string> = {
 };
 
 const TOOL_ICON: Record<DrawTool, { icon: LucideIcon; accent: string }> = {
-  polygon: { icon: Pentagon, accent: "#2F80ED" },
-  circle: { icon: Circle, accent: "#0F2C5C" },
+  polygon: { icon: Pentagon, accent: "#1F8F48" },
+  circle: { icon: Circle, accent: "#0B591F" },
   grid: { icon: Grid2x2, accent: "#E0992A" },
   proximity: { icon: Hexagon, accent: "#06B6D4" },
   dynamic: { icon: Radar, accent: "#22C55E" },
