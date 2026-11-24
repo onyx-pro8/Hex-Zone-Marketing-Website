@@ -73,7 +73,7 @@ export function Hero() {
       <div className="hero__media" aria-hidden="true">
         <img
           className="hero__media-img"
-          src="/assets/hero-main.jpg?v=9"
+          src="/assets/hero-main.jpg?v=10"
           width={1920}
           height={1080}
           fetchPriority="high"
