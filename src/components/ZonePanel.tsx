@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 import { Icon } from "./Icon";
 
 const checklist = [
@@ -10,6 +11,9 @@ const checklist = [
 ];
 
 export function ZonePanel() {
+  const { user, token, loading } = useAuth();
+  const signedIn = Boolean(token && (user || loading));
+
   return (
     <section className="zone-panel" id="solutions" aria-labelledby="zone-panel-title">
       <div className="container">
@@ -35,10 +39,12 @@ export function ZonePanel() {
               Whether you look after your family, your street, or a shared community, Safe Zone Patrol
               helps you stay informed, stay secure, and stay connected.
             </p>
-            <Link className="btn btn--primary zone-panel__cta" to="/register">
-              Get Started Free
-              <Icon id="i-arrow-right" />
-            </Link>
+            {signedIn ? null : (
+              <Link className="btn btn--primary zone-panel__cta" to="/register">
+                Get Started Free
+                <Icon id="i-arrow-right" />
+              </Link>
+            )}
           </div>
 
           <ul className="zone-panel__list" role="list">

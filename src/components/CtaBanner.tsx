@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 import { Icon } from "./Icon";
 
 export function CtaBanner() {
+  const { user, token, loading } = useAuth();
+  const signedIn = Boolean(token && (user || loading));
+
   return (
     <section className="cta" id="download" aria-labelledby="cta-title">
       <div className="container">
@@ -62,10 +66,12 @@ export function CtaBanner() {
             </h2>
           </div>
 
-          <Link className="btn btn--primary cta__btn" to="/register">
-            Get started
-            <Icon id="i-arrow-right" />
-          </Link>
+          {signedIn ? null : (
+            <Link className="btn btn--primary cta__btn" to="/register">
+              Get started
+              <Icon id="i-arrow-right" />
+            </Link>
+          )}
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 import { Icon } from "./Icon";
 
 const features = [
@@ -68,6 +69,9 @@ const features = [
 ];
 
 export function Hero() {
+  const { user, token, loading } = useAuth();
+  const signedIn = Boolean(token && (user || loading));
+
   return (
     <section className="hero" aria-labelledby="hero-title">
       <div className="hero__media" aria-hidden="true">
@@ -94,9 +98,11 @@ export function Hero() {
           </p>
 
           <div className="hero__actions">
-            <Link className="btn btn--cyan hero__download" to="/register">
-              Get Started
-            </Link>
+            {signedIn ? null : (
+              <Link className="btn btn--cyan hero__download" to="/register">
+                Get Started
+              </Link>
+            )}
             <a className="hero__store" href="#" aria-label="Download on the App Store">
               <Icon id="i-apple" className="icon hero__store-icon hero__store-icon--apple" />
               <span className="hero__store-label">

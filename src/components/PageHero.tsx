@@ -11,7 +11,7 @@ export function PageHero({ eyebrow, title, lead, aside }: PageHeroProps) {
   return (
     <section className="page-hero" aria-labelledby="page-hero-title">
       <div
-        className={`container page-hero__inner${aside ? " page-hero__inner--split" : ""}`}
+        className={`container page-hero__inner page-hero__inner--split`}
       >
         <div className="page-hero__copy">
           <p className="page-hero__eyebrow">{eyebrow}</p>

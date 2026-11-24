@@ -1,31 +1,52 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthSplit } from "../components/AuthSplit";
 import { useAuth } from "../auth/useAuth";
-import { getLastEmail, persistLastEmail } from "../lib/api";
+import { clearLastEmail, getLastEmail, getRememberMe, persistLastEmail } from "../lib/api";
+
+function rememberBrowserLogin(form: HTMLFormElement): void {
+  if (!("PasswordCredential" in window) || !navigator.credentials?.store) return;
+  try {
+    const credential = new PasswordCredential(form);
+    void navigator.credentials.store(credential);
+  } catch {
+    /* The browser declined to store this login. */
+  }
+}
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, user, token, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [email, setEmail] = useState(() => getLastEmail());
-  const [password, setPassword] = useState("");
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(() => getRememberMe());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const nextPath = searchParams.get("next")?.startsWith("/")
     ? searchParams.get("next")!
     : "/account";
+  const sessionReady = Boolean(token && user);
+
+  useEffect(() => {
+    if (authLoading || !sessionReady) return;
+    navigate(nextPath, { replace: true });
+  }, [authLoading, sessionReady, navigate, nextPath]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
+    const email = (emailRef.current?.value ?? "").trim();
+    const password = passwordRef.current?.value ?? "";
     setError("");
     setLoading(true);
+    if (rememberMe) rememberBrowserLogin(form);
     try {
-      await login(email.trim(), password, { rememberMe });
-      persistLastEmail(email);
+      await login(email, password, { rememberMe });
+      if (rememberMe) persistLastEmail(email);
+      else clearLastEmail();
       navigate(nextPath, { replace: true });
     } catch (err) {
       const message =
@@ -42,6 +63,19 @@ export function LoginPage() {
     }
   }
 
+  if (token && (authLoading || sessionReady)) {
+    return (
+      <AuthSplit
+        visualTitle="One account across every surface"
+        visualLead="Sign in with the same credentials used in the mobile app and operations console."
+      >
+        <p className="eyebrow">Welcome back</p>
+        <h1 className="auth-split__title">Signing you back in</h1>
+        <p className="auth-split__lead">This browser already has your saved sign-in.</p>
+      </AuthSplit>
+    );
+  }
+
   return (
     <AuthSplit
       visualTitle="One account across every surface"
@@ -55,7 +89,7 @@ export function LoginPage() {
         Access your zones, billing, and account settings.
       </p>
 
-      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+      <form className="auth-form" onSubmit={handleSubmit} autoComplete="on">
         <div className="auth-field">
           <label className="auth-label" htmlFor="login-email">
             Email
@@ -63,10 +97,11 @@ export function LoginPage() {
           <input
             id="login-email"
             className="auth-input"
+            name="username"
             type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
+            defaultValue={getLastEmail()}
+            ref={emailRef}
             required
           />
         </div>
@@ -79,10 +114,10 @@ export function LoginPage() {
             <input
               id="login-password"
               className="auth-input"
+              name="password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              ref={passwordRef}
               required
             />
             <button

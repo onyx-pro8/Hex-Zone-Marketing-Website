@@ -1720,6 +1720,7 @@ p {
   position: relative;
   align-self: stretch;
   overflow: hidden;
+  margin-left: 30px;
 }
 .zone-panel__art {
   position: absolute;
