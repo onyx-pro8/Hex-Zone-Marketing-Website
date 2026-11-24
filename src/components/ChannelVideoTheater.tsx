@@ -12,7 +12,7 @@ function embedUrl(id: string, autoplay: boolean) {
     playsinline: "1",
   });
   if (autoplay) params.set("autoplay", "1");
-  return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
+  return `https://www.youtube.com/embed/${id}?${params.toString()}`;
 }
 
 export function ChannelVideoTheater() {
@@ -29,7 +29,6 @@ export function ChannelVideoTheater() {
           title={active.title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
-          referrerPolicy="strict-origin-when-cross-origin"
         />
         <div className="theater__meta">
           <h3 className="theater__title">{active.title}</h3>
