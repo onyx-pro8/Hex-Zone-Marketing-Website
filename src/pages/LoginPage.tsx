@@ -4,8 +4,13 @@ import { AuthSplit } from "../components/AuthSplit";
 import { useAuth } from "../auth/useAuth";
 import { clearLastEmail, getLastEmail, getRememberMe, persistLastEmail } from "../lib/api";
 
+type PasswordCredentialCtor = new (form: HTMLFormElement) => Credential;
+
 function rememberBrowserLogin(form: HTMLFormElement): void {
-  if (!("PasswordCredential" in window) || !navigator.credentials?.store) return;
+  const PasswordCredential = (
+    window as Window & { PasswordCredential?: PasswordCredentialCtor }
+  ).PasswordCredential;
+  if (!PasswordCredential || !navigator.credentials?.store) return;
   try {
     const credential = new PasswordCredential(form);
     void navigator.credentials.store(credential);
