@@ -5123,6 +5123,10 @@ p {
   gap: 12px;
   min-width: 0;
 }
+.zones-studio__new {
+  display: flex;
+  justify-content: flex-start;
+}
 .zones-studio__tools {
   position: static;
   z-index: 2;

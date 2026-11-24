@@ -1051,27 +1051,12 @@ export function ZonesWorkspace() {
           );
         })}
       </div>
+        {composing ? (
         <section className="dash-card">
           <div className="dash-card__head">
             <h2 className="community-panel__title">{editingId ? "Edit zone" : "Draw a zone"}</h2>
-            {composing ? (
-              <button type="button" className="zone-text-btn" onClick={cancelCompose}>
-                <X size={15} strokeWidth={2.4} />
-                Cancel
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="zone-text-btn"
-                disabled={capabilities?.can_create_zone === false}
-                onClick={startNew}
-              >
-                <Plus size={15} strokeWidth={2.4} />
-                New
-              </button>
-            )}
           </div>
-          <fieldset className="zones-studio__details" disabled={!composing}>
+          <fieldset className="zones-studio__details">
           {error ? <p className="community-page__status is-error">{error}</p> : null}
           {status ? <p className="dash-status">{status}</p> : null}
           {!editingId && capabilities?.can_create_zone === false ? (
@@ -1295,9 +1280,28 @@ export function ZonesWorkspace() {
           </div>
           </fieldset>
         </section>
+        ) : null}
       </div>
 
       <div className="zones-studio__sheet">
+        <div className="zones-studio__new">
+          {composing ? (
+            <button type="button" className="zone-text-btn" onClick={cancelCompose}>
+              <X size={15} strokeWidth={2.4} />
+              Cancel
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="zone-text-btn"
+              disabled={capabilities?.can_create_zone === false}
+              onClick={startNew}
+            >
+              <Plus size={15} strokeWidth={2.4} />
+              New
+            </button>
+          )}
+        </div>
         <section className="community-panel dash-panel" aria-labelledby="zone-list-title">
           <div className="community-panel__head">
             <h2 className="community-panel__title" id="zone-list-title">Zones</h2>
