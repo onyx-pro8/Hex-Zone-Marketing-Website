@@ -40,6 +40,7 @@ import {
   type ZoneReferenceResult,
 } from "../../lib/api/zones";
 import { isPrivateAccount, normalizeAccountType } from "../../lib/privateAccount";
+import { toast } from "../../lib/toast";
 import {
   DRAW_TOOLS,
   H3_RES_MAX,
@@ -890,6 +891,7 @@ export function ZonesWorkspace() {
       return;
     }
 
+    const wasEditing = Boolean(editingId);
     const result = editingId
       ? await updateZone(editingId, {
           name: payload.name,
@@ -905,16 +907,16 @@ export function ZonesWorkspace() {
       : await createZone(payload);
     setSaving(false);
     if (result.error || !result.data) {
-      setError(result.error ?? "Could not save the zone.");
+      const message = result.error ?? "Could not save the zone.";
+      setError(message);
+      toast.error(message);
       return;
     }
     const savedId = String(result.data.id ?? editingId ?? "");
-    if (savedId) {
-      setEditingId(savedId);
-      setSelectedId(savedId);
-    }
-    setStatus(editingId ? "Zone updated." : "Zone saved.");
+    if (savedId) setSelectedId(savedId);
     await load();
+    cancelCompose();
+    toast.success(wasEditing ? "Zone updated." : "Zone saved.");
   }
 
   async function remove(zone: SavedZone) {
@@ -930,10 +932,11 @@ export function ZonesWorkspace() {
     const result = await deleteZone(zone.id);
     if (result.error) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
     if (editingId === String(zone.id)) cancelCompose();
-    setStatus("Zone deleted.");
+    toast.success("Zone deleted.");
     await load();
   }
 
@@ -1286,14 +1289,14 @@ export function ZonesWorkspace() {
       <div className="zones-studio__sheet">
         <div className="zones-studio__new">
           {composing ? (
-            <button type="button" className="zone-text-btn" onClick={cancelCompose}>
+            <button type="button" className="zone-save is-cancel" onClick={cancelCompose}>
               <X size={15} strokeWidth={2.4} />
               Cancel
             </button>
           ) : (
             <button
               type="button"
-              className="zone-text-btn"
+              className="zone-save"
               disabled={capabilities?.can_create_zone === false}
               onClick={startNew}
             >
