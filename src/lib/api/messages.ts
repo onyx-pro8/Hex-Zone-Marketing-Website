@@ -10,7 +10,8 @@ export type MessageType =
   | "PRIVATE"
   | "PA"
   | "SERVICE"
-  | "WELLNESS_CHECK";
+  | "WELLNESS_CHECK"
+  | "CHAT";
 
 export type MessagePosition = {
   latitude: number;
@@ -266,6 +267,108 @@ export async function listInboxMessages(ownerId: number) {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
   return { messages, error };
+}
+
+export async function uploadMessageImage(imageDataUrl: string) {
+  return request<{ url: string }>({
+    method: "POST",
+    path: "/me/media",
+    body: { image: imageDataUrl },
+  });
+}
+
+export type ChatGuest = {
+  id: string;
+  name: string;
+  status: "PENDING" | "ARRIVED" | "APPROVED" | "REJECTED";
+  expectation: "expected" | "unexpected";
+  created_at?: string;
+};
+
+export async function listChatGuests(zoneId: string) {
+  const result = await request<unknown>({
+    method: "GET",
+    path: "/api/access/guest-requests",
+    params: { zone_id: zoneId },
+  });
+  const raw = result.data;
+  const list = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && Array.isArray((raw as { items?: unknown[] }).items)
+      ? (raw as { items: unknown[] }).items
+      : [];
+  const guests = list
+    .map((item) => normalizeChatGuest(item))
+    .filter((row): row is ChatGuest => row != null)
+    .sort(compareChatGuests);
+  return { ...result, data: guests };
+}
+
+export async function sendChatMessage(payload: {
+  guestId: string;
+  message: string;
+  zoneId: string;
+  broadcastName: string;
+  images?: string[];
+}) {
+  const images = (payload.images ?? []).filter((url) => url.trim()).slice(0, 5);
+  const msg: Record<string, unknown> = {
+    ...(payload.broadcastName.trim() ? { broadcast_name: payload.broadcastName.trim() } : {}),
+    ...(images.length ? { images } : {}),
+  };
+  return request<unknown>({
+    method: "POST",
+    path: "/messages",
+    body: {
+      guest_id: payload.guestId,
+      message: payload.message || (images.length ? " " : payload.message),
+      message_type: "CHAT",
+      visibility: "private",
+      zone_id: payload.zoneId,
+      ...(payload.broadcastName.trim() ? { broadcast_name: payload.broadcastName.trim() } : {}),
+      ...(Object.keys(msg).length ? { msg } : {}),
+    },
+  });
+}
+
+function normalizeChatGuest(raw: unknown): ChatGuest | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  const guestId = String(row.guest_id ?? row.guestId ?? "").trim();
+  const idRaw = row.id ?? row.request_id;
+  const id = idRaw != null && String(idRaw).trim() ? String(idRaw).trim() : guestId;
+  if (!id && !guestId) return null;
+  const statusRaw = String(row.approval_status ?? row.status ?? "").toUpperCase();
+  const status: ChatGuest["status"] =
+    statusRaw === "APPROVED" || statusRaw === "GRANTED"
+      ? "APPROVED"
+      : statusRaw === "REJECTED" || statusRaw === "DENIED"
+        ? "REJECTED"
+        : statusRaw === "ARRIVED"
+          ? "ARRIVED"
+          : "PENDING";
+  const kind = String(row.kind ?? row.expectation ?? "").toLowerCase();
+  const createdRaw = row.created_at ?? row.arrived_at;
+  return {
+    id: guestId || id,
+    name: String(row.guest_name ?? row.name ?? "Guest").trim() || "Guest",
+    status,
+    expectation:
+      kind.includes("unexpected") || row.unexpected === true ? "unexpected" : "expected",
+    created_at: typeof createdRaw === "string" ? createdRaw : undefined,
+  };
+}
+
+function compareChatGuests(a: ChatGuest, b: ChatGuest): number {
+  const rank = (status: ChatGuest["status"]) =>
+    status === "PENDING" ? 0 : status === "ARRIVED" ? 1 : status === "APPROVED" ? 2 : 3;
+  const byStatus = rank(a.status) - rank(b.status);
+  if (byStatus !== 0) return byStatus;
+  const time = (value?: string) => {
+    const parsed = value ? new Date(value).getTime() : Number.POSITIVE_INFINITY;
+    return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+  };
+  return time(a.created_at) - time(b.created_at);
 }
 
 export async function propagateMessage(payload: {
