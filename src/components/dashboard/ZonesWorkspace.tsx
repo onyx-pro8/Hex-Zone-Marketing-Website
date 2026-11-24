@@ -7,6 +7,7 @@ import {
   Hexagon,
   Landmark,
   LocateFixed,
+  PanelRight,
   Pentagon,
   KeyRound,
   Radar,
@@ -203,6 +204,7 @@ export function ZonesWorkspace() {
   const [pan, setPan] = useState<{ center: LatLng; zoom?: number; key: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [keyOpen, setKeyOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -542,10 +544,12 @@ export function ZonesWorkspace() {
     clearDraft();
     setStatus("Draw the zone, then save. Tap the selected type again to cancel.");
     setError("");
+    setDetailsOpen(true);
   }
 
   function cancelCompose() {
     setComposing(false);
+    setDetailsOpen(false);
     setEditingId(null);
     setName("");
     setDescription("");
@@ -641,6 +645,7 @@ export function ZonesWorkspace() {
     if (shape) setFocus(focusTargetForZone(shape));
     setStatus(`Editing ${zoneTitle(zone)}. Tap the selected type again to cancel.`);
     setError("");
+    setDetailsOpen(true);
   }
 
   function selectTool(next: DrawTool) {
@@ -1036,6 +1041,14 @@ export function ZonesWorkspace() {
           <MapAction label="Locate" onClick={locateMe}>
             <LocateFixed size={20} strokeWidth={2.4} />
           </MapAction>
+          <MapAction
+            label="Details"
+            tone={detailsOpen ? "on" : undefined}
+            disabled={!composing}
+            onClick={() => setDetailsOpen((open) => !open)}
+          >
+            <PanelRight size={20} strokeWidth={2.4} />
+          </MapAction>
         </div>
         {draftM2 > 0 ? (
           <aside className={`zones-studio__area${sizeReason ? " is-over" : ""}`}>
@@ -1068,13 +1081,14 @@ export function ZonesWorkspace() {
           );
         })}
       </div>
-        {composing ? (
-        <div className="zone-detail-modal">
+        {composing && detailsOpen ? (
+        <div className="zone-detail-modal" role="presentation" onClick={() => setDetailsOpen(false)}>
         <section
           className="dash-card zone-detail-modal__card"
           role="dialog"
-          aria-modal="false"
+          aria-modal="true"
           aria-labelledby="zone-detail-title"
+          onClick={(event) => event.stopPropagation()}
         >
           <div className="dash-card__head">
             <h2 className="community-panel__title" id="zone-detail-title">{editingId ? "Edit zone" : "Draw a zone"}</h2>

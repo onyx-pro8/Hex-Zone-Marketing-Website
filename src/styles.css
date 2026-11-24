@@ -5127,6 +5127,15 @@ p {
   top: auto;
   height: min(62dvh, 680px);
   min-height: 420px;
+  z-index: auto;
+  isolation: auto;
+}
+.zones-studio .community-map {
+  z-index: 0;
+  isolation: isolate;
+}
+.zones-studio__map-actions {
+  z-index: 90;
 }
 .zones-studio__sheet {
   display: grid;
@@ -5135,18 +5144,19 @@ p {
 }
 .zone-detail-modal {
   position: fixed;
+  inset: 0;
   z-index: 80;
-  right: 20px;
-  bottom: 20px;
-  left: auto;
-  display: flex;
+  display: grid;
+  place-items: center;
+  padding: 24px 24px 120px;
+  background: rgba(4, 48, 15, 0.45);
   pointer-events: none;
 }
 .zone-detail-modal__card {
-  pointer-events: auto;
-  width: min(420px, calc(100vw - 40px));
-  max-height: min(70dvh, 640px);
+  width: min(520px, 100%);
+  max-height: min(70dvh, 720px);
   overflow: auto;
+  pointer-events: auto;
 }
 .zone-detail-modal__card .dash-card__head {
   position: sticky;
@@ -5727,7 +5737,7 @@ p {
     top: auto;
     height: min(52dvh, 460px);
     min-height: 280px;
-    z-index: 1;
+    z-index: auto;
   }
   .zones-studio__tools {
     position: static;
