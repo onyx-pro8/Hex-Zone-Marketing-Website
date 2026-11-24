@@ -8,6 +8,7 @@ import {
   Landmark,
   LocateFixed,
   Pentagon,
+  KeyRound,
   Plus,
   X,
   Radar,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
 import { AddressAutocompleteInput } from "../AddressAutocompleteInput";
+import { UniversalAccessKeyModal } from "./UniversalAccessKeyModal";
 import { ZoneDrawMap } from "./ZoneDrawMap";
 import { listCommunalIds, listZonesForCommunalId, type CommunalIdRow } from "../../lib/api/communal";
 import {
@@ -199,6 +201,7 @@ export function ZonesWorkspace() {
   const [pan, setPan] = useState<{ center: LatLng; zoom?: number; key: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
+  const [keyOpen, setKeyOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [createAsPrimary, setCreateAsPrimary] = useState(false);
@@ -1276,6 +1279,10 @@ export function ZonesWorkspace() {
         <section className="community-panel dash-panel" aria-labelledby="zone-list-title">
           <div className="community-panel__head">
             <h2 className="community-panel__title" id="zone-list-title">Zones</h2>
+            <button type="button" className="zone-text-btn" onClick={() => setKeyOpen(true)}>
+              <KeyRound size={15} strokeWidth={2.3} />
+              Universal access key
+            </button>
             <span className="community-panel__count">{zones.length}</span>
           </div>
           {loading ? <p className="community-page__status">Loading zones…</p> : null}
@@ -1347,6 +1354,14 @@ export function ZonesWorkspace() {
             </ul>
         </section>
       </div>
+      <UniversalAccessKeyModal
+        open={keyOpen}
+        onClose={() => setKeyOpen(false)}
+        onSent={() => {
+          setStatus("Access key sent.");
+          void load();
+        }}
+      />
     </div>
   );
 }
