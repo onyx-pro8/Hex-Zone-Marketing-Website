@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
+import { ChannelVideoTheater } from "../components/ChannelVideoTheater";
 import { Icon } from "../components/Icon";
 import { PageHero } from "../components/PageHero";
-import { VideoTutorialCard } from "../components/VideoTutorialCard";
 
 const steps = [
   {
@@ -23,45 +23,6 @@ const steps = [
     step: "04",
     title: "Monitor and respond",
     text: "Receive real-time alerts, manage guest access, and coordinate from web or mobile.",
-  },
-];
-
-const tutorials = [
-  {
-    title: "Getting started with Safe Zone Patrol",
-    description: "A quick walkthrough of the dashboard, zones, and your first alert setup.",
-    duration: "4:20",
-    category: "Basics",
-  },
-  {
-    title: "Creating zones with H3 and geofences",
-    description: "Learn how to draw, edit, and organize zones for homes, sites, and routes.",
-    duration: "6:05",
-    category: "Zones",
-  },
-  {
-    title: "Inviting members and assigning roles",
-    description: "Add people to your network and control what each role can see and do.",
-    duration: "3:48",
-    category: "Network",
-  },
-  {
-    title: "Guest passes and access control",
-    description: "Issue temporary access, set permissions, and review guest activity.",
-    duration: "5:12",
-    category: "Access",
-  },
-  {
-    title: "Alerts and incident response",
-    description: "Configure alert rules and respond quickly when something needs attention.",
-    duration: "4:55",
-    category: "Alerts",
-  },
-  {
-    title: "Using the mobile app on the go",
-    description: "Stay connected with live status, notifications, and mobile guest tools.",
-    duration: "3:30",
-    category: "Mobile",
   },
 ];
 
@@ -102,7 +63,7 @@ export function HowItWorksPage() {
         </div>
       </section>
 
-      <section className="page-section" aria-labelledby="how-videos-title">
+      <section className="page-section" id="videos" aria-labelledby="how-videos-title">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">Video tutorials</p>
@@ -110,18 +71,12 @@ export function HowItWorksPage() {
               Learn at your own pace
             </h2>
             <p className="section-sub">
-              Short walkthroughs for setup, zones, access, and day-to-day operations. Videos will
-              appear here when published.
+              Walkthroughs from the Safe Zone Patrol channel play here. Open any video on YouTube
+              if you would rather watch it there.
             </p>
           </div>
 
-          <ul className="video-grid list-reset" role="list">
-            {tutorials.map((item) => (
-              <li key={item.title}>
-                <VideoTutorialCard {...item} />
-              </li>
-            ))}
-          </ul>
+          <ChannelVideoTheater />
         </div>
       </section>
 

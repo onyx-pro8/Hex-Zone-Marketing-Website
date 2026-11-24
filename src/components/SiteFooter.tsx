@@ -30,7 +30,12 @@ const footerCols = [
 ];
 
 const social = [
-  { href: "#", label: "Safe Zone Patrol on YouTube", icon: "i-youtube", className: "youtube" },
+  {
+    href: "https://www.youtube.com/@safezonepatrol",
+    label: "Safe Zone Patrol on YouTube",
+    icon: "i-youtube",
+    className: "youtube",
+  },
   { href: "#", label: "Safe Zone Patrol on LinkedIn", icon: "i-linkedin", className: "linkedin" },
   { href: "#", label: "Safe Zone Patrol on X", icon: "i-x", className: "x" },
 ];
@@ -66,6 +71,9 @@ export function SiteFooter() {
                   className={`site-footer__social-link site-footer__social-link--${item.className}`}
                   href={item.href}
                   aria-label={item.label}
+                  {...(item.href.startsWith("http")
+                    ? { target: "_blank", rel: "noreferrer" }
+                    : {})}
                 >
                   <Icon id={item.icon} />
                 </a>
