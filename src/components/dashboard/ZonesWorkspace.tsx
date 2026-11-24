@@ -544,7 +544,6 @@ export function ZonesWorkspace() {
     clearDraft();
     setStatus("Draw the zone, then save. Tap the selected type again to cancel.");
     setError("");
-    setDetailsOpen(true);
   }
 
   function cancelCompose() {
@@ -645,7 +644,6 @@ export function ZonesWorkspace() {
     if (shape) setFocus(focusTargetForZone(shape));
     setStatus(`Editing ${zoneTitle(zone)}. Tap the selected type again to cancel.`);
     setError("");
-    setDetailsOpen(true);
   }
 
   function selectTool(next: DrawTool) {
