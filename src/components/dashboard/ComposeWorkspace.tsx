@@ -302,6 +302,7 @@ export function ComposeWorkspace() {
   const [guests, setGuests] = useState<ChatGuest[]>([]);
   const [guestsLoading, setGuestsLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [savedBroadcast, setSavedBroadcast] = useState("");
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
@@ -1242,6 +1243,21 @@ export function ComposeWorkspace() {
                             <p className="dash-bubble__subject">{message.subject}</p>
                           ) : null}
                           {message.body ? <p className="dash-bubble__text">{message.body}</p> : null}
+                          {message.images.length > 0 ? (
+                            <div className="dash-bubble__images">
+                              {message.images.map((src, index) => (
+                                <button
+                                  key={`${message.id}-image-${index}`}
+                                  type="button"
+                                  className="dash-bubble__photo"
+                                  onClick={() => setPreviewImage(src)}
+                                  aria-label={`Open photo ${index + 1}`}
+                                >
+                                  <img src={src} alt="" />
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
                           {showBadge ? (
                             <span className={`dash-bubble__chip is-${tone}`}>
                               {typeLabel(message.type)}
@@ -1259,6 +1275,31 @@ export function ComposeWorkspace() {
       </div>
     </aside>
     </div>
+    {previewImage ? (
+      <div
+        className="zone-detail-modal"
+        role="presentation"
+        onClick={() => setPreviewImage(null)}
+      >
+        <div
+          className="dash-photo-preview"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Message photo"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="ua-modal__close"
+            aria-label="Close photo"
+            onClick={() => setPreviewImage(null)}
+          >
+            <X size={18} />
+          </button>
+          <img src={previewImage} alt="" />
+        </div>
+      </div>
+    ) : null}
     </div>
   );
 }

@@ -154,6 +154,7 @@ export type InboxMessage = {
   lane: InboxLane;
   body: string;
   subject: string | null;
+  images: string[];
   zoneId: string;
   zoneLabel: string;
   senderId: number | null;
@@ -193,6 +194,60 @@ function extractMessageRows(data: unknown): unknown[] {
   return [];
 }
 
+function isMessageImageUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return (
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("data:image/")
+  );
+}
+
+function readImages(source: unknown): string[] {
+  if (!Array.isArray(source)) return [];
+  const urls: string[] = [];
+  for (const item of source) {
+    const candidate =
+      item && typeof item === "object" && !Array.isArray(item)
+        ? (item as { url?: unknown }).url
+        : item;
+    if (isMessageImageUrl(candidate) && urls.length < 5) urls.push(candidate.trim());
+  }
+  return urls;
+}
+
+function extractImages(row: Record<string, unknown>, msg: Record<string, unknown> | null): string[] {
+  const rawPayload =
+    row.raw_payload && typeof row.raw_payload === "object" && !Array.isArray(row.raw_payload)
+      ? (row.raw_payload as Record<string, unknown>)
+      : null;
+  const nested =
+    rawPayload?.msg && typeof rawPayload.msg === "object" && !Array.isArray(rawPayload.msg)
+      ? (rawPayload.msg as Record<string, unknown>)
+      : null;
+  const metadata =
+    row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+      ? (row.metadata as Record<string, unknown>)
+      : null;
+  const metadataMsg =
+    metadata?.msg && typeof metadata.msg === "object" && !Array.isArray(metadata.msg)
+      ? (metadata.msg as Record<string, unknown>)
+      : null;
+  for (const source of [
+    row.images,
+    msg?.images,
+    rawPayload?.images,
+    nested?.images,
+    metadataMsg?.images,
+  ]) {
+    const urls = readImages(source);
+    if (urls.length) return urls;
+  }
+  return [];
+}
+
 function laneForType(type: string): InboxLane | null {
   const upper = type.toUpperCase();
   if (upper === "PERMISSION") return null;
@@ -216,6 +271,7 @@ function normalizeInboxMessage(raw: unknown): InboxMessage | null {
   const description = readText(msg?.description);
   const bodyText = readText(row.message) || readText(row.text) || description;
   const body = subject && bodyText === subject && description ? description : bodyText;
+  const images = extractImages(row, msg);
   const zoneId = readText(row.zone_id) || readText(row.zoneId);
   const zoneLabel =
     readText(row.relevant_zone_label) ||
@@ -230,8 +286,9 @@ function normalizeInboxMessage(raw: unknown): InboxMessage | null {
     id,
     type,
     lane,
-    body: body || subject || "",
+    body: body || (images.length ? "" : subject || ""),
     subject: subject && subject !== body ? subject : null,
+    images,
     zoneId: zoneId || zoneLabel,
     zoneLabel,
     senderId,

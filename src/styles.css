@@ -5036,6 +5036,48 @@ p {
 .dash-bubble__subject {
   font-weight: 800;
 }
+.dash-bubble__images {
+  display: grid;
+  gap: 6px;
+  min-width: min(220px, 70vw);
+}
+.dash-bubble__photo {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(4, 48, 15, 0.06);
+  cursor: zoom-in;
+  overflow: hidden;
+}
+.dash-bubble__photo img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+}
+.dash-photo-preview {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: min(82dvh, 820px);
+  padding: 12px;
+  border-radius: 16px;
+  background: #fff;
+}
+.dash-photo-preview img {
+  display: block;
+  width: 100%;
+  max-height: min(74dvh, 760px);
+  object-fit: contain;
+  border-radius: 12px;
+}
+.dash-photo-preview .ua-modal__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(4, 48, 15, 0.72);
+  color: #fff;
+}
 .dash-bubble__chip {
   justify-self: start;
   padding: 3px 8px;
