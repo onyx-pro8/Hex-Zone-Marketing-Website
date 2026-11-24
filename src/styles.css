@@ -1648,6 +1648,7 @@ p {
       #d5fee0 100%
     );
   box-shadow: 0 24px 50px -28px rgba(45, 121, 62, 0.3);
+  overflow: hidden;
 }
 
 /* ---------- Copy column ---------- */
@@ -1715,20 +1716,20 @@ p {
 }
 
 /* ---------- Illustration ----------
-   The art fills the panel's bottom-right corner (its right-hand corners are rounded in the
-   asset) and grows upwards, so its transparent top rows let the tree top poke out above
-   the panel edge. Only the left edge needs feathering into the panel gradient. */
+   The art stays inside the card. An earlier build let it grow above the panel, which
+   covered the heading once the asset had a solid background. */
 .zone-panel__media {
   position: relative;
   align-self: stretch;
+  overflow: hidden;
 }
 .zone-panel__art {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   width: 100%;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 2.4%);
-  mask-image: linear-gradient(90deg, transparent, #000 2.4%);
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* ---------- Responsive ---------- */ /* @responsive-appended */
