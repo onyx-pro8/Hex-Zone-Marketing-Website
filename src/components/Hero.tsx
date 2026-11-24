@@ -3,8 +3,8 @@ import { Icon } from "./Icon";
 
 const features = [
   {
-    title: "Create Zones",
-    text: "with H3 or geofences",
+    title: "Create Neighbourhoods",
+    text: "in 3 simple steps",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path
@@ -15,8 +15,8 @@ const features = [
     ),
   },
   {
-    title: "Connect Your Network",
-    text: "Members & devices",
+    title: "Connect to Your Neighbourhood",
+    text: "Family's devices & home-alarm",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <circle cx="12" cy="7.4" r="3.5" />
@@ -55,7 +55,7 @@ const features = [
   },
   {
     title: "Communicate",
-    text: "On the go",
+    text: "With people who matter",
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path

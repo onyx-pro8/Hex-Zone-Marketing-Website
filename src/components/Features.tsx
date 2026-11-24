@@ -38,7 +38,7 @@ const cards: FeatureCard[] = [
     height: 260,
     alt: "Security officer on patrol outside an office campus",
     title: "Security & Patrols",
-    text: "Monitor zones, manage access, and respond to incidents.",
+    text: "Watch your neighbourhood, welcome guests, and respond when it matters.",
     badge: (
       <svg
         className="feature-card__icon"
@@ -104,7 +104,7 @@ const cards: FeatureCard[] = [
     height: 260,
     alt: "Developer at a desk with live map dashboards on screen",
     title: "Developer Ready",
-    text: "Integrate with our REST API and documented endpoints.",
+    text: "Connect Safe Zone Patrol with the tools your community already uses.",
     badge: (
       <svg
         className="feature-card__icon"
@@ -129,12 +129,12 @@ export function Features() {
     <section className="features" id="features" aria-labelledby="features-title">
       <div className="container">
         <div className="section-head features__head">
-          <p className="eyebrow">A COMPLETE ZONE MANAGEMENT SOLUTION</p>
+          <p className="eyebrow">Looking out for your neighbourhood</p>
           <h2 className="section-title" id="features-title">
             Powerful Features. Endless Possibilities.
           </h2>
           <p className="section-sub">
-            From family safety to large-scale operations, Safe Zone Patrol adapts to your needs.
+            From family safety to a whole community, Safe Zone Patrol fits the way you live.
           </p>
         </div>
 

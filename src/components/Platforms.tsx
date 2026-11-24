@@ -1,7 +1,7 @@
 const platforms = [
   {
     title: "Web dashboard",
-    text: "Configure zones, review alerts, and manage members from a full desktop console.",
+    text: "Set up your neighbourhood, see alerts, and look after your people from your computer.",
   },
   {
     title: "Mobile apps",
@@ -9,7 +9,7 @@ const platforms = [
   },
   {
     title: "API & SDK",
-    text: "Integrate Safe Zone Patrol into your own systems with REST endpoints and API docs.",
+    text: "Connect Safe Zone Patrol with the tools you already use.",
   },
 ];
 
@@ -18,12 +18,12 @@ export function Platforms() {
     <section className="platforms" id="platforms" aria-labelledby="platforms-title">
       <div className="container">
         <div className="section-head platforms__head">
-          <p className="eyebrow">Everywhere you work</p>
+          <p className="eyebrow">Wherever you are</p>
           <h2 className="section-title" id="platforms-title">
-            Available across web, mobile, and API
+            On your computer, your phone, and the tools you already use
           </h2>
           <p className="section-sub">
-            Deploy once, then operate from the surfaces your team already uses every day.
+            Start in one place, then stay connected from the phone and computer you already use.
           </p>
         </div>
 

@@ -1,23 +1,23 @@
 const steps = [
   {
     step: "01",
-    title: "Define your zones",
-    text: "Draw geofences or assign H3 cells for homes, campuses, routes, and patrol areas in minutes.",
+    title: "Create your neighbourhood",
+    text: "Set it up in 3 simple steps, for your home and the street around it.",
   },
   {
     step: "02",
-    title: "Connect people & devices",
-    text: "Invite members, register devices, and set roles so everyone sees the right zone context.",
+    title: "Connect to your neighbourhood",
+    text: "Link your family's devices and home alarm so the right people stay close.",
   },
   {
     step: "03",
-    title: "Monitor in real time",
-    text: "Track presence, receive alerts, and review activity as people and assets move through zones.",
+    title: "Hear what matters",
+    text: "Get a clear alert when something at home or nearby needs you.",
   },
   {
     step: "04",
-    title: "Control access & respond",
-    text: "Issue guest passes, manage permissions, and coordinate responses from web or mobile.",
+    title: "Talk with your people",
+    text: "Message the people who matter, welcome guests, and stay in touch from your phone.",
   },
 ];
 
@@ -28,10 +28,10 @@ export function HowItWorks() {
         <div className="section-head how__head">
           <p className="eyebrow">How it works</p>
           <h2 className="section-title" id="how-title">
-            From zone setup to live protection
+            From your home to a connected neighbourhood
           </h2>
           <p className="section-sub">
-            A clear workflow that scales from a single household to multi-site operations.
+            A simple path for a household, a street, or a whole community.
           </p>
         </div>
 

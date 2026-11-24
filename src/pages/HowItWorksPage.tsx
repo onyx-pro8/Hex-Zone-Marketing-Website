@@ -11,13 +11,13 @@ const steps = [
   },
   {
     step: "02",
-    title: "Define zones",
-    text: "Draw geofences or assign H3 cells for homes, campuses, routes, and patrol areas.",
+    title: "Create your neighbourhood",
+    text: "Set up the places your family and neighbours share, in 3 simple steps.",
   },
   {
     step: "03",
-    title: "Connect your network",
-    text: "Invite members, register devices, and configure roles for the right level of access.",
+    title: "Connect to your neighbourhood",
+    text: "Add your family's devices and home alarm so everyone who should know, does.",
   },
   {
     step: "04",
@@ -40,10 +40,10 @@ export function HowItWorksPage() {
           <div className="section-head">
             <p className="eyebrow">Workflow</p>
             <h2 className="section-title" id="how-steps-title">
-              Four steps to a connected zone network
+              Four steps to a connected neighbourhood
             </h2>
             <p className="section-sub">
-              The same flow whether you protect a household, a community, or a multi-site operation.
+              The same simple path for a home, a street, or a whole community.
             </p>
           </div>
 
@@ -83,9 +83,9 @@ export function HowItWorksPage() {
       <section className="page-section page-section--tint page-section--cta" aria-label="Next steps">
         <div className="container page-cta">
           <div className="page-cta__copy">
-            <h2 className="page-cta__title">Ready to set up your first zone?</h2>
+            <h2 className="page-cta__title">Ready to start your neighbourhood?</h2>
             <p className="page-cta__text">
-              Start free, or explore smart-home hub setup if you are connecting devices at home.
+              Start free, or see how smart home connects your family's devices and home alarm.
             </p>
           </div>
           <div className="page-cta__actions">

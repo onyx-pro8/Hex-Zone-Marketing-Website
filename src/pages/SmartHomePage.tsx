@@ -5,8 +5,8 @@ import { PageHero } from "../components/PageHero";
 
 const benefits = [
   {
-    title: "Hub-aware zones",
-    text: "Tie smart-home hubs to the zones they protect so presence and access stay in sync.",
+    title: "A home that stays in the picture",
+    text: "Tie your smart home to the neighbourhood it protects, so arrivals and access stay in sync.",
   },
   {
     title: "Device registration",
@@ -18,7 +18,7 @@ const benefits = [
   },
   {
     title: "Alerts that matter",
-    text: "Get notified when hub status, zone activity, or access events need a quick response.",
+    text: "Get notified when your home, your street, or a visitor needs a quick response.",
   },
 ];
 
@@ -26,7 +26,7 @@ const guides = [
   {
     title: "Smart home setup guide",
     description:
-      "End-to-end PDF for registering hubs, linking zones, and confirming plan capacity.",
+      "A simple guide for connecting your home, your family's devices, and your home alarm.",
     type: "PDF" as const,
     pages: "12 pages",
   },
@@ -38,9 +38,9 @@ const guides = [
     pages: "2 pages",
   },
   {
-    title: "Zone mapping reference",
+    title: "Neighbourhood setup reference",
     description:
-      "How to map hubs to H3 cells or geofences, with examples for homes and shared spaces.",
+      "How to connect your home to the neighbourhood, with simple examples for houses and shared spaces.",
     type: "Guide" as const,
     pages: "8 pages",
   },
@@ -59,7 +59,7 @@ export function SmartHomePage() {
       <PageHero
         eyebrow="Product"
         title="Smart home"
-        lead="Connect hubs to your zones, manage devices with clear limits, and keep household protection running smoothly — with channel videos and PDF guides."
+        lead="Connect your home, look after your family's devices, and keep everyday protection simple — with videos and guides."
       />
 
       <section className="page-section page-section--tint" aria-labelledby="smart-benefits-title">
@@ -70,8 +70,7 @@ export function SmartHomePage() {
               Protection that fits your home network
             </h2>
             <p className="section-sub">
-              Built for families and administrators who want zone awareness without a heavy hardware
-              stack.
+              Built for families who want neighbourhood awareness without a cupboard full of hardware.
             </p>
           </div>
 

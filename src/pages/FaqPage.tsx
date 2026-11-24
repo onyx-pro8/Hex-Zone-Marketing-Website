@@ -20,11 +20,11 @@ const groups: FaqGroup[] = [
     items: [
       {
         q: "What is Safe Zone Patrol?",
-        a: "Safe Zone Patrol is a geospatial zone-management platform. Create zones, connect members and devices, manage guest access, and respond to alerts from web and mobile.",
+        a: "Safe Zone Patrol helps communities stay aware and protected. Create a neighbourhood, connect your family, welcome guests, and get the messages that matter — on the web and on your phone.",
       },
       {
-        q: "How do zones work?",
-        a: "Define zones with geofences or H3 cells, then attach people, devices, and access rules. Monitoring stays tied to the places that matter instead of scattered across disconnected tools.",
+        q: "How do neighbourhoods work?",
+        a: "Create yours in 3 simple steps, then connect the people and devices that belong there. Awareness stays with the places you care about, instead of being scattered across different apps.",
       },
       {
         q: "Do you support smart-home hubs?",

@@ -3,12 +3,12 @@ import { PageHero } from "../components/PageHero";
 
 const capabilities = [
   {
-    title: "Shared neighborhood zones",
-    text: "Define communal areas, gates, and shared spaces so residents and guests stay aligned.",
+    title: "Shared neighbourhood spaces",
+    text: "Set up gates, parks, and shared spaces so residents and guests stay aligned.",
   },
   {
     title: "Member coordination",
-    text: "Invite households, assign roles, and keep communication tied to the zones that matter.",
+    text: "Invite households and keep the conversation with the neighbours who matter.",
   },
   {
     title: "Guest-friendly access",
@@ -27,11 +27,11 @@ const useCases = [
   },
   {
     title: "Campus living",
-    text: "Student housing and multi-building residences coordinating access across connected zones.",
+    text: "Student housing and multi-building homes, coordinating daily life across connected places.",
   },
   {
     title: "Mixed-use sites",
-    text: "Communities that blend homes, amenities, and visitor traffic under one zone network.",
+    text: "Communities that blend homes, amenities, and visitors under one neighbourhood.",
   },
 ];
 
@@ -41,7 +41,7 @@ export function CommunitiesPage() {
       <PageHero
         eyebrow="Solutions"
         title="Communities"
-        lead="Keep neighborhoods connected with shared zones, member coordination, and guest access that scales from a single street to a full community network."
+        lead="Keep neighbours connected with shared spaces, family coordination, and guest access that grows from a single street to a whole community."
       />
 
       <section className="page-section page-section--tint" aria-labelledby="communities-cap-title">
