@@ -1296,11 +1296,6 @@ export function ZonesWorkspace() {
             </div>
           ) : null}
 
-          <div className="dash-actions">
-            <button type="button" className="zone-save" disabled={!canSave} onClick={() => void save()}>
-              {saving ? "Saving…" : tool === "communal_id" ? "Save Communal ID" : editingId ? "Update zone" : "Save zone"}
-            </button>
-          </div>
           </fieldset>
         </section>
         </div>
@@ -1308,6 +1303,13 @@ export function ZonesWorkspace() {
       </div>
 
       <div className="zones-studio__sheet">
+        {composing ? (
+          <div className="zones-studio__save">
+            <button type="button" className="zone-save" disabled={!canSave} onClick={() => void save()}>
+              {saving ? "Saving…" : tool === "communal_id" ? "Save Communal ID" : editingId ? "Update zone" : "Save zone"}
+            </button>
+          </div>
+        ) : null}
         <section className="community-panel dash-panel" aria-labelledby="zone-list-title">
           <div className="community-panel__head">
             <h2 className="community-panel__title" id="zone-list-title">Zones</h2>

@@ -5154,8 +5154,7 @@ p {
   z-index: 1;
   background: #fff;
 }
-.zone-detail-modal .dash-actions .zone-save {
-  flex: 1;
+.zones-studio__save .zone-save {
   width: 100%;
 }
 .zones-studio__tools {
