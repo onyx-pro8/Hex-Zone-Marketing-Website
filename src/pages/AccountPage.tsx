@@ -5,6 +5,7 @@ import { PermissionWorkspace } from "../components/dashboard/PermissionWorkspace
 import { useAuth } from "../auth/useAuth";
 import {
   checkUsernameAvailable,
+  changePassword,
   getRemoteAppSettings,
   getSubscriptionOverview,
   mergeRemoteAppSettings,
@@ -90,6 +91,12 @@ export function AccountPage() {
   const [savingIdentity, setSavingIdentity] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [identitySaved, setIdentitySaved] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordStatus, setPasswordStatus] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [overview, setOverview] = useState<SubscriptionOverview | null>(null);
@@ -361,6 +368,35 @@ export function AccountPage() {
     setStatus("Address and broadcast name updated.");
   }
 
+  async function onChangePassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPasswordError("");
+    setPasswordStatus("");
+    if (!currentPassword) {
+      setPasswordError("Enter your current password.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match.");
+      return;
+    }
+    setSavingPassword(true);
+    const result = await changePassword(currentPassword, newPassword);
+    setSavingPassword(false);
+    if (result.error) {
+      setPasswordError(result.error);
+      return;
+    }
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordStatus("Password updated.");
+  }
+
   const networkId = String(
     user?.zoneId ??
       user?.zone_id ??
@@ -603,6 +639,85 @@ export function AccountPage() {
                 : identitySaved
                   ? "Saved"
                   : "Update address & broadcast name"}
+            </button>
+          </form>
+        </section>
+
+        <section className="settings-section" aria-labelledby="password-title">
+          <h2 className="settings-section__title" id="password-title">
+            Password
+          </h2>
+          <p className="settings-section__lead">
+            Enter your current password, then choose a new one.
+          </p>
+          <form className="settings-form" onSubmit={(event) => void onChangePassword(event)}>
+            <div className="auth-grid">
+              <div className="auth-field">
+                <label className="auth-label" htmlFor="settings-current-password">
+                  Current password
+                </label>
+                <input
+                  id="settings-current-password"
+                  className="auth-input"
+                  type="password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(event) => {
+                    setCurrentPassword(event.target.value);
+                    setPasswordStatus("");
+                  }}
+                  required
+                />
+              </div>
+              <div className="auth-field">
+                <label className="auth-label" htmlFor="settings-new-password">
+                  New password
+                </label>
+                <input
+                  id="settings-new-password"
+                  className="auth-input"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  value={newPassword}
+                  onChange={(event) => {
+                    setNewPassword(event.target.value);
+                    setPasswordStatus("");
+                  }}
+                  required
+                />
+              </div>
+              <div className="auth-field settings-span">
+                <label className="auth-label" htmlFor="settings-confirm-password">
+                  Confirm new password
+                </label>
+                <input
+                  id="settings-confirm-password"
+                  className="auth-input"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  value={confirmPassword}
+                  onChange={(event) => {
+                    setConfirmPassword(event.target.value);
+                    setPasswordStatus("");
+                  }}
+                  required
+                />
+              </div>
+            </div>
+            {passwordError ? (
+              <p className="auth-error" role="alert">
+                {passwordError}
+              </p>
+            ) : null}
+            {passwordStatus ? (
+              <p className="settings-status is-ok" role="status">
+                {passwordStatus}
+              </p>
+            ) : null}
+            <button className="btn btn--primary auth-submit" type="submit" disabled={savingPassword}>
+              {savingPassword ? "Updating…" : "Update password"}
             </button>
           </form>
         </section>

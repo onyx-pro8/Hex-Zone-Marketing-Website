@@ -3719,10 +3719,46 @@ p {
   height: 16px;
   accent-color: var(--blue-600);
 }
+.auth-login-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 .auth-submit {
   width: 100%;
   justify-content: center;
   margin-top: 4px;
+}
+.auth-code {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.auth-code__digit {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink-900);
+  font: 700 24px/1 var(--font-display);
+  text-align: center;
+  outline: none;
+}
+.auth-code__digit:focus {
+  border-color: rgba(45, 168, 77, 0.7);
+  box-shadow: 0 0 0 3px rgba(45, 168, 77, 0.15);
+}
+.auth-code__resend {
+  width: 100%;
+}
+.auth-code__back {
+  justify-self: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
 }
 .auth-error {
   margin: 0;
