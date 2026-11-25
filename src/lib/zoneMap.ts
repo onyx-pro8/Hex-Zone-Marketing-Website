@@ -1,3 +1,4 @@
+import { cellToBoundary } from "h3-js";
 import type { CommunalZone } from "./api/communal";
 
 export type LatLng = [number, number];
@@ -47,6 +48,12 @@ export function normalizeZoneType(value: unknown): string {
   const raw = typeof value === "string" ? value.toLowerCase() : "";
   if (raw in ZONE_TYPE_COLORS) return raw;
   if (raw === "custom_1") return "communal_id";
+  if (raw === "custom_2" || raw === "local_code" || raw === "gov_local_code") {
+    return "government_local_code";
+  }
+  if (raw === "alert" || raw === "warn") return "grid";
+  if (raw === "restricted") return "proximity";
+  if (raw === "emergency") return "dynamic";
   return "geofence";
 }
 
@@ -96,6 +103,31 @@ export function ringsFromGeoJsonPolygon(geo: unknown): LatLng[][] {
     return out;
   }
   return [];
+}
+
+export function readZoneH3Cells(zone: CommunalZone): string[] {
+  const cfg = (zone.config ?? {}) as Record<string, unknown>;
+  const raw = Array.isArray(zone.h3_cells)
+    ? zone.h3_cells
+    : Array.isArray(cfg.h3_cells)
+      ? cfg.h3_cells
+      : Array.isArray(cfg.h3Cells)
+        ? cfg.h3Cells
+        : [];
+  return raw.filter((cell): cell is string => typeof cell === "string" && cell.trim().length > 0);
+}
+
+function ringsFromH3Cells(cells: string[]): LatLng[][] {
+  const rings: LatLng[][] = [];
+  for (const cell of cells) {
+    try {
+      const ring = cellToBoundary(cell).map(([lat, lng]) => [lat, lng] as LatLng);
+      if (ring.length >= 3) rings.push(ring);
+    } catch {
+      /* skip invalid ids */
+    }
+  }
+  return rings;
 }
 
 export function readZoneRings(zone: CommunalZone): LatLng[][] {
@@ -213,7 +245,8 @@ export function zoneToMapShape(zone: CommunalZone): MapZoneShape | null {
   const id = zone.id ?? zone.zone_id;
   if (id == null) return null;
   const type = normalizeZoneType(zone.type ?? zone.zone_type);
-  const rings = readZoneRings(zone);
+  let rings = readZoneRings(zone);
+  if (rings.length === 0) rings = ringsFromH3Cells(readZoneH3Cells(zone));
   const circles = readZoneCircles(zone);
   const marker = readZoneCenter(zone) ?? undefined;
   if (rings.length === 0 && circles.length === 0 && !marker) return null;

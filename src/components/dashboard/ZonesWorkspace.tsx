@@ -472,7 +472,7 @@ export function ZonesWorkspace() {
       return `Add ${3 - ring.length} more point${ring.length === 2 ? "" : "s"}.`;
     }
     if (tool === "circle") return circleCenter && circleRadius === 0 ? "Tap again to set the radius." : "Tap the center, then tap the edge.";
-    if (tool === "grid") return `Tap hexes to toggle them · ${cells.length} selected · resolution ${h3Resolution}.`;
+    if (tool === "grid") return `Tap the map to add hexes · ${cells.length} selected · resolution ${h3Resolution}.`;
     if (tool === "proximity") return proximitySource === "gps" ? "The circle follows your GPS." : "Tap the map to place the source.";
     if (tool === "dynamic") return "Set the target and radius bounds. The server places the circle.";
     if (tool === "communal_id") return "Generate or validate an ID, then save it. Attach it on a primary zone.";
