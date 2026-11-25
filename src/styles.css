@@ -5239,33 +5239,33 @@ p {
   display: block;
 }
 .zones-studio__stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   min-width: 0;
 }
 .zones-studio__map {
   position: relative;
   top: auto;
-  height: min(78dvh, 860px);
-  min-height: 560px;
+  height: min(68dvh, 760px);
+  min-height: 480px;
   z-index: auto;
   isolation: auto;
 }
 .zone-detail-card {
-  position: absolute;
-  z-index: 520;
-  top: 12px;
-  left: 58px;
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: min(440px, calc(100% - 132px));
-  max-height: calc(100% - 108px);
-  padding: 12px;
+  width: 100%;
+  max-height: min(42dvh, 420px);
+  padding: 12px 14px;
   border: 1px solid rgba(20, 100, 38, 0.1);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 16px 36px rgba(15, 44, 92, 0.16);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  pointer-events: auto;
 }
 .zone-detail-card__head {
   display: flex;
@@ -5273,7 +5273,6 @@ p {
   justify-content: space-between;
 }
 .zone-detail-card__tools {
-  max-height: 92px;
   overflow: auto;
 }
 .zone-detail-card__hint {
@@ -5924,13 +5923,12 @@ p {
 }
 @media (max-width: 959.98px) {
   .zones-studio__map {
-    height: min(82dvh, 760px);
-    min-height: 520px;
+    height: min(70dvh, 640px);
+    min-height: 420px;
   }
   .zone-detail-card {
-    left: 12px;
-    width: min(440px, calc(100% - 84px));
-    max-height: calc(100% - 108px);
+    width: 100%;
+    max-height: min(48dvh, 460px);
   }
   .zones-studio__area {
     left: 12px;

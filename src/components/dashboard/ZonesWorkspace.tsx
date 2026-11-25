@@ -981,70 +981,6 @@ export function ZonesWorkspace() {
   return (
     <div className="zones-studio">
       <div className="zones-studio__stage">
-      <section className="zones-studio__map community-workspace__map" aria-label="Zone drawing map">
-        <ZoneDrawMap
-          zones={shapes}
-          selectedZoneId={selectedId}
-          showAll
-          grayscale={false}
-          focus={focus}
-          pan={pan}
-          draftRing={tool === "polygon" ? ring : []}
-          draftCircle={liveCircle}
-          draftMarker={draftMarker}
-          h3Rings={h3Rings}
-          previewRings={previewRings}
-          measureA={measureA}
-          measureB={measureB}
-          draftColor={TOOL_COLOR[tool]}
-          onMapClick={onMapClick}
-          onClosePolygon={() => setRing((current) => finishPolygon(current))}
-          onVertexMove={(index, point) => setRing((current) => moveRingVertex(current, index, point))}
-          onVertexRemove={(index) => setRing((current) => removeRingVertex(current, index))}
-          onCircleCenter={setCircleCenter}
-          onCircleRadius={setCircleRadius}
-          hideZoneId={composing && editingId ? editingId : null}
-        />
-        <div className="zones-studio__map-actions">
-          {tool === "polygon" ? (
-            <MapAction
-              label="Finish"
-              tone={composing && ring.length >= 3 && !isClosedRing(ring) ? "accent" : undefined}
-              disabled={!composing || ring.length < 3 || isClosedRing(ring)}
-              onClick={() => setRing((current) => finishPolygon(current))}
-            >
-              <CheckCircle2 size={20} strokeWidth={2.4} />
-            </MapAction>
-          ) : null}
-          <MapAction
-            label="Undo"
-            disabled={!composing}
-            onClick={() => {
-              if (tool === "polygon") setRing((current) => (isClosedRing(current) ? openRing(current).slice(0, -1) : current.slice(0, -1)));
-              else if (tool === "grid") setCells((current) => current.slice(0, -1));
-              else clearDraft();
-            }}
-          >
-            <Undo2 size={20} strokeWidth={2.4} />
-          </MapAction>
-          <MapAction label="Clear" tone="danger" disabled={!composing} onClick={clearDraft}>
-            <Trash2 size={20} strokeWidth={2.4} />
-          </MapAction>
-          <MapAction label="Measure" tone={measuring ? "on" : undefined} disabled={!composing} onClick={() => setMeasuring((value) => !value)}>
-            <Ruler size={20} strokeWidth={2.4} />
-          </MapAction>
-          <MapAction label="Locate" onClick={locateMe}>
-            <LocateFixed size={20} strokeWidth={2.4} />
-          </MapAction>
-        </div>
-        {draftM2 > 0 ? (
-          <aside className={`zones-studio__area${sizeReason ? " is-over" : ""}`}>
-            <p>This zone <strong>{formatArea(draftM2)}</strong></p>
-            <p>Each-zone limit {formatAreaLimit(areaBudget?.each_zone_m2)}</p>
-            <p>Total limit {formatAreaLimit(areaBudget?.total_m2)}</p>
-            {sizeReason ? <p>{sizeReason}</p> : null}
-          </aside>
-        ) : null}
         <aside className="zone-detail-card" aria-labelledby="zone-detail-title">
           <div className="zone-detail-card__head">
             <h2 className="community-panel__title" id="zone-detail-title">{editingId ? "Edit zone" : "Draw a zone"}</h2>
@@ -1301,6 +1237,70 @@ export function ZonesWorkspace() {
             </button>
           </div>
         </aside>
+      <section className="zones-studio__map community-workspace__map" aria-label="Zone drawing map">
+        <ZoneDrawMap
+          zones={shapes}
+          selectedZoneId={selectedId}
+          showAll
+          grayscale={false}
+          focus={focus}
+          pan={pan}
+          draftRing={tool === "polygon" ? ring : []}
+          draftCircle={liveCircle}
+          draftMarker={draftMarker}
+          h3Rings={h3Rings}
+          previewRings={previewRings}
+          measureA={measureA}
+          measureB={measureB}
+          draftColor={TOOL_COLOR[tool]}
+          onMapClick={onMapClick}
+          onClosePolygon={() => setRing((current) => finishPolygon(current))}
+          onVertexMove={(index, point) => setRing((current) => moveRingVertex(current, index, point))}
+          onVertexRemove={(index) => setRing((current) => removeRingVertex(current, index))}
+          onCircleCenter={setCircleCenter}
+          onCircleRadius={setCircleRadius}
+          hideZoneId={composing && editingId ? editingId : null}
+        />
+        <div className="zones-studio__map-actions">
+          {tool === "polygon" ? (
+            <MapAction
+              label="Finish"
+              tone={composing && ring.length >= 3 && !isClosedRing(ring) ? "accent" : undefined}
+              disabled={!composing || ring.length < 3 || isClosedRing(ring)}
+              onClick={() => setRing((current) => finishPolygon(current))}
+            >
+              <CheckCircle2 size={20} strokeWidth={2.4} />
+            </MapAction>
+          ) : null}
+          <MapAction
+            label="Undo"
+            disabled={!composing}
+            onClick={() => {
+              if (tool === "polygon") setRing((current) => (isClosedRing(current) ? openRing(current).slice(0, -1) : current.slice(0, -1)));
+              else if (tool === "grid") setCells((current) => current.slice(0, -1));
+              else clearDraft();
+            }}
+          >
+            <Undo2 size={20} strokeWidth={2.4} />
+          </MapAction>
+          <MapAction label="Clear" tone="danger" disabled={!composing} onClick={clearDraft}>
+            <Trash2 size={20} strokeWidth={2.4} />
+          </MapAction>
+          <MapAction label="Measure" tone={measuring ? "on" : undefined} disabled={!composing} onClick={() => setMeasuring((value) => !value)}>
+            <Ruler size={20} strokeWidth={2.4} />
+          </MapAction>
+          <MapAction label="Locate" onClick={locateMe}>
+            <LocateFixed size={20} strokeWidth={2.4} />
+          </MapAction>
+        </div>
+        {draftM2 > 0 ? (
+          <aside className={`zones-studio__area${sizeReason ? " is-over" : ""}`}>
+            <p>This zone <strong>{formatArea(draftM2)}</strong></p>
+            <p>Each-zone limit {formatAreaLimit(areaBudget?.each_zone_m2)}</p>
+            <p>Total limit {formatAreaLimit(areaBudget?.total_m2)}</p>
+            {sizeReason ? <p>{sizeReason}</p> : null}
+          </aside>
+        ) : null}
         <button
           type="button"
           className={`zones-studio__list-toggle${listOpen ? " is-on" : ""}`}
