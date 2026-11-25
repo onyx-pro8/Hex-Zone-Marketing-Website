@@ -6,8 +6,8 @@ import {
   Grid2x2,
   Hexagon,
   Landmark,
+  List,
   LocateFixed,
-  PanelRight,
   Pentagon,
   KeyRound,
   Radar,
@@ -15,6 +15,7 @@ import {
   Trash2,
   Undo2,
   Users,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
@@ -204,7 +205,7 @@ export function ZonesWorkspace() {
   const [pan, setPan] = useState<{ center: LatLng; zoom?: number; key: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
   const [keyOpen, setKeyOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -472,7 +473,7 @@ export function ZonesWorkspace() {
       return `Add ${3 - ring.length} more point${ring.length === 2 ? "" : "s"}.`;
     }
     if (tool === "circle") return circleCenter && circleRadius === 0 ? "Tap again to set the radius." : "Tap the center, then tap the edge.";
-    if (tool === "grid") return `Tap the map to add hexes · ${cells.length} selected · resolution ${h3Resolution}.`;
+    if (tool === "grid") return `Tap hexes to toggle them · ${cells.length} selected · resolution ${h3Resolution}.`;
     if (tool === "proximity") return proximitySource === "gps" ? "The circle follows your GPS." : "Tap the map to place the source.";
     if (tool === "dynamic") return "Set the target and radius bounds. The server places the circle.";
     if (tool === "communal_id") return "Generate or validate an ID, then save it. Attach it on a primary zone.";
@@ -548,7 +549,6 @@ export function ZonesWorkspace() {
 
   function cancelCompose() {
     setComposing(false);
-    setDetailsOpen(false);
     setEditingId(null);
     setName("");
     setDescription("");
@@ -1005,9 +1005,6 @@ export function ZonesWorkspace() {
           onCircleRadius={setCircleRadius}
           hideZoneId={composing && editingId ? editingId : null}
         />
-        <div className="zones-studio__chrome">
-          <p className="zones-studio__hint">{hint}</p>
-        </div>
         <div className="zones-studio__map-actions">
           {tool === "polygon" ? (
             <MapAction
@@ -1039,14 +1036,6 @@ export function ZonesWorkspace() {
           <MapAction label="Locate" onClick={locateMe}>
             <LocateFixed size={20} strokeWidth={2.4} />
           </MapAction>
-          <MapAction
-            label="Details"
-            tone={detailsOpen ? "on" : undefined}
-            disabled={!composing}
-            onClick={() => setDetailsOpen((open) => !open)}
-          >
-            <PanelRight size={20} strokeWidth={2.4} />
-          </MapAction>
         </div>
         {draftM2 > 0 ? (
           <aside className={`zones-studio__area${sizeReason ? " is-over" : ""}`}>
@@ -1056,8 +1045,11 @@ export function ZonesWorkspace() {
             {sizeReason ? <p>{sizeReason}</p> : null}
           </aside>
         ) : null}
-      </section>
-      <div className="zones-studio__tools" role="tablist" aria-label="Zone tools">
+        <aside className="zone-detail-card" aria-labelledby="zone-detail-title">
+          <div className="zone-detail-card__head">
+            <h2 className="community-panel__title" id="zone-detail-title">{editingId ? "Edit zone" : "Draw a zone"}</h2>
+          </div>
+      <div className="zones-studio__tools zone-detail-card__tools" role="tablist" aria-label="Zone tools">
         {tools.map((item) => {
           const meta = TOOL_ICON[item.id];
           const Icon = meta.icon;
@@ -1079,18 +1071,8 @@ export function ZonesWorkspace() {
           );
         })}
       </div>
-        {composing && detailsOpen ? (
-        <div className="zone-detail-modal" role="presentation" onClick={() => setDetailsOpen(false)}>
-        <section
-          className="dash-card zone-detail-modal__card"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="zone-detail-title"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="dash-card__head">
-            <h2 className="community-panel__title" id="zone-detail-title">{editingId ? "Edit zone" : "Draw a zone"}</h2>
-          </div>
+          <p className="zone-detail-card__hint">{hint}</p>
+          <div className="zone-detail-card__body">
           <fieldset className="zones-studio__details">
           {error ? <p className="community-page__status is-error">{error}</p> : null}
           {status ? <p className="dash-status">{status}</p> : null}
@@ -1309,23 +1291,30 @@ export function ZonesWorkspace() {
           ) : null}
 
           </fieldset>
-        </section>
-        </div>
-        ) : null}
-      </div>
-
-      <div className="zones-studio__sheet">
-        {composing ? (
+          </div>
           <div className="zones-studio__save">
             <button type="button" className="zone-save" disabled={!canSave} onClick={() => void save()}>
               {saving ? "Saving…" : tool === "communal_id" ? "Save Communal ID" : editingId ? "Update zone" : "Save zone"}
             </button>
-            <button type="button" className="zone-save is-cancel" onClick={cancelCompose}>
+            <button type="button" className="zone-save is-cancel" disabled={!composing} onClick={cancelCompose}>
               Cancel
             </button>
           </div>
-        ) : null}
-        <section className="community-panel dash-panel" aria-labelledby="zone-list-title">
+        </aside>
+        <button
+          type="button"
+          className={`zones-studio__list-toggle${listOpen ? " is-on" : ""}`}
+          aria-expanded={listOpen}
+          aria-controls="zone-list-panel"
+          onClick={() => setListOpen((open) => !open)}
+        >
+          {listOpen ? <X size={20} strokeWidth={2.4} /> : <List size={20} strokeWidth={2.4} />}
+          <span className="zones-studio__list-toggle-label">{listOpen ? "Close" : "Zones"}</span>
+        </button>
+        {listOpen ? (
+          <>
+            <button type="button" className="zone-list-backdrop" aria-label="Close zones" onClick={() => setListOpen(false)} />
+        <section id="zone-list-panel" className="community-panel dash-panel zone-list-modal" aria-labelledby="zone-list-title">
           <div className="community-panel__head">
             <h2 className="community-panel__title" id="zone-list-title">Zones</h2>
             <button type="button" className="zone-text-btn" onClick={() => setKeyOpen(true)}>
@@ -1360,6 +1349,7 @@ export function ZonesWorkspace() {
                     if (!shape) return;
                     setSelectedId(shape.id);
                     setFocus(focusTargetForZone(shape));
+                    setListOpen(false);
                   }}
                 >
                   <strong>{zoneTitle(zone)}</strong>
@@ -1382,6 +1372,7 @@ export function ZonesWorkspace() {
                         setSelectedId(String(zone.id));
                         const shape = zoneToMapShape(zone);
                         if (shape) setFocus(focusTargetForZone(shape));
+                        setListOpen(false);
                       }}
                     >
                       <span className="community-list__row">
@@ -1392,7 +1383,7 @@ export function ZonesWorkspace() {
                     </button>
                     {canManageZone(zone) ? (
                       <span className="zones-studio__row-actions">
-                        <button type="button" className="btn btn--ghost dash-mini" onClick={() => beginEdit(zone)}>Edit</button>
+                        <button type="button" className="btn btn--ghost dash-mini" onClick={() => { setListOpen(false); beginEdit(zone); }}>Edit</button>
                         <button type="button" className="btn btn--ghost dash-mini dash-danger" onClick={() => void remove(zone)}>Delete</button>
                       </span>
                     ) : null}
@@ -1402,6 +1393,9 @@ export function ZonesWorkspace() {
               })}
             </ul>
         </section>
+          </>
+        ) : null}
+      </section>
       </div>
       <UniversalAccessKeyModal
         open={keyOpen}
