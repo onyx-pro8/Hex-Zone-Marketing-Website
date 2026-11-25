@@ -5285,6 +5285,26 @@ p {
   overflow: auto;
   padding-right: 2px;
 }
+.zone-detail-card__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
+  align-items: start;
+}
+.zone-detail-card__columns:not(:has(.zone-detail-card__main)),
+.zone-detail-card__columns:not(:has(.zone-detail-card__settings)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.zone-detail-card__main,
+.zone-detail-card__settings {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+.zone-detail-card__main .contact__field textarea {
+  min-height: 92px;
+}
 .zones-studio__list-toggle {
   position: absolute;
   z-index: 720;
@@ -5929,6 +5949,11 @@ p {
   .zone-detail-card {
     width: 100%;
     max-height: min(48dvh, 460px);
+  }
+  .zone-detail-card__columns,
+  .zone-detail-card__columns:not(:has(.zone-detail-card__main)),
+  .zone-detail-card__columns:not(:has(.zone-detail-card__settings)) {
+    grid-template-columns: minmax(0, 1fr);
   }
   .zones-studio__area {
     left: 12px;

@@ -977,6 +977,7 @@ export function ZonesWorkspace() {
     capabilities?.can_create_primary === false && editingZone?.is_primary !== true;
   const secondaryChoiceDisabled = !editingId && capabilities?.can_create_secondary === false;
   const showAttach = canUseCommunal && tool !== "communal_id" && (editingId ? true : createAsPrimary);
+  const showSettings = showTier || showAttach || tool !== "polygon";
 
   return (
     <div className="zones-studio">
@@ -1016,19 +1017,22 @@ export function ZonesWorkspace() {
             <p className="community-page__status is-error">{capabilities.reason ?? "You cannot create more zones."}</p>
           ) : null}
 
+          <div className="zone-detail-card__columns">
           {tool !== "communal_id" ? (
-            <div className="dash-form">
+            <div className="zone-detail-card__main dash-form">
               <label className="contact__field">
                 Zone name
                 <input value={name} maxLength={MAX_ZONE_NAME_LENGTH} placeholder="Building perimeter" onChange={(event) => setName(event.target.value)} />
               </label>
               <label className="contact__field">
                 Description
-                <textarea rows={2} value={description} placeholder="Optional notes" onChange={(event) => setDescription(event.target.value)} />
+                <textarea rows={3} value={description} placeholder="Optional notes" onChange={(event) => setDescription(event.target.value)} />
               </label>
             </div>
           ) : null}
 
+          {showSettings ? (
+          <div className="zone-detail-card__settings">
           {showTier ? (
             <div className="dash-block">
               <p className="dash-label">Zone tier</p>
@@ -1225,6 +1229,9 @@ export function ZonesWorkspace() {
               ) : null}
             </div>
           ) : null}
+          </div>
+          ) : null}
+          </div>
 
           </fieldset>
           </div>
