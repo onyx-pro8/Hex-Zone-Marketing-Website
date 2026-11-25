@@ -5259,13 +5259,12 @@ p {
   flex-direction: column;
   gap: 10px;
   width: 100%;
-  max-height: min(42dvh, 420px);
   padding: 12px 14px;
   border: 1px solid rgba(20, 100, 38, 0.1);
   border-radius: 16px;
   background: #fff;
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow: visible;
 }
 .zone-detail-card__head {
   display: flex;
@@ -5273,7 +5272,7 @@ p {
   justify-content: space-between;
 }
 .zone-detail-card__tools {
-  overflow: auto;
+  overflow: visible;
 }
 .zone-detail-card__hint {
   margin: 0;
@@ -5281,9 +5280,7 @@ p {
   font: 600 12px/1.4 var(--font-body);
 }
 .zone-detail-card__body {
-  min-height: 0;
-  overflow: auto;
-  padding-right: 2px;
+  overflow: visible;
 }
 .zone-detail-card__columns {
   display: grid;
@@ -5951,7 +5948,6 @@ p {
   }
   .zone-detail-card {
     width: 100%;
-    max-height: min(48dvh, 460px);
   }
   .zone-detail-card__columns,
   .zone-detail-card__columns:not(:has(.zone-detail-card__main)),
