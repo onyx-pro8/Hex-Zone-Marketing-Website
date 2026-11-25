@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "node init && vite",
+    "build": "node init && tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
@@ -13,6 +13,7 @@
     "h3-js": "^4.5.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.79.0",
+    "node-fetch": "^3.3.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-leaflet": "^5.0.0",

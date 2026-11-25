@@ -243,7 +243,8 @@ export function ZoneDrawMap({
           <Polygon
             key={`h3-${index}`}
             positions={ring}
-            pathOptions={{ color: "#F59E0B", weight: 2, fillColor: "#F59E0B", fillOpacity: 0.28 }}
+            interactive={false}
+            pathOptions={{ color: draftColor, weight: 2, fillColor: draftColor, fillOpacity: 0.45 }}
           />
         ))}
         {draftRing.length >= 2 && draftRing.length < 3 ? (
