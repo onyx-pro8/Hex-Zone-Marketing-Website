@@ -12,6 +12,7 @@ import { FaqPage } from "./pages/FaqPage";
 import { Home } from "./pages/Home";
 import { HowItWorksPage } from "./pages/HowItWorksPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { PricingPage } from "./pages/PricingPage";
 import { SecurityPrivacyPage } from "./pages/SecurityPrivacyPage";
 import { SmartHomePage } from "./pages/SmartHomePage";
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="faq" element={<FaqPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="login" element={<LoginPage />} />
+            <Route path="forgot-password" element={<ForgotPasswordPage />} />
             <Route path="register" element={<CreateAccountPage />} />
             <Route path="signup" element={<Navigate to="/register" replace />} />
             <Route path="account" element={<AccountPage />} />

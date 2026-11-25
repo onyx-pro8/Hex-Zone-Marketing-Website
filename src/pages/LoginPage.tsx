@@ -135,14 +135,19 @@ export function LoginPage() {
           </div>
         </div>
 
-        <label className="auth-check">
-          <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-          />
-          <span>Remember me on this device</span>
-        </label>
+        <div className="auth-login-row">
+          <label className="auth-check">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <span>Remember me on this device</span>
+          </label>
+          <Link className="auth-link" to="/forgot-password">
+            Forgot password?
+          </Link>
+        </div>
 
         {error ? (
           <p className="auth-error" role="alert">

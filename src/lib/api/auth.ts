@@ -191,19 +191,67 @@ export async function loginRequest(
   };
 }
 
-export async function registerRequest(
-  payload: RegisterPayload,
-): Promise<ApiResult<{ id?: string }>> {
-  // Self-serve signup is free Individual only. Paid plans activate via Stripe.
+export type SignupVerificationStatus = {
+  email: string;
+  expires_in_seconds: number;
+  resend_after_seconds: number;
+  sent: boolean;
+  delivery: string;
+};
+
+function normalizeSelfServeRegister(payload: RegisterPayload): RegisterPayload {
   const communal = payload.communalId?.trim().toUpperCase();
-  const normalized: RegisterPayload = {
+  return {
     ...payload,
+    email: payload.email.trim(),
     accountType: "EXCLUSIVE",
     registrationType: "USER",
     registrationCode: undefined,
     tierLevel: undefined,
-    ...(communal ? { communalId: communal } : {}),
+    address: payload.address?.trim() || "N/A",
+    ...(communal ? { communalId: communal } : { communalId: undefined }),
   };
+}
+
+export async function startSignupVerification(
+  payload: RegisterPayload,
+): Promise<ApiResult<SignupVerificationStatus>> {
+  return request<SignupVerificationStatus>({
+    method: "POST",
+    path: "/auth/signup/verification",
+    body: normalizeSelfServeRegister(payload),
+    auth: false,
+  });
+}
+
+export async function resendSignupVerification(
+  email: string,
+): Promise<ApiResult<SignupVerificationStatus>> {
+  return request<SignupVerificationStatus>({
+    method: "POST",
+    path: "/auth/signup/verification/resend",
+    body: { email: email.trim() },
+    auth: false,
+  });
+}
+
+export async function confirmSignupVerification(
+  email: string,
+  code: string,
+): Promise<ApiResult<{ id?: string }>> {
+  return request<{ id?: string }>({
+    method: "POST",
+    path: "/auth/signup/verification/confirm",
+    body: { email: email.trim(), code },
+    auth: false,
+  });
+}
+
+export async function registerRequest(
+  payload: RegisterPayload,
+): Promise<ApiResult<{ id?: string }>> {
+  // Self-serve signup is free Individual only. Paid plans activate via Stripe.
+  const normalized = normalizeSelfServeRegister(payload);
 
   const primary = await request<{ id?: string }>({
     method: "POST",
@@ -285,4 +333,76 @@ export function generateNetworkId(): string {
     .join("")
     .toUpperCase();
   return `NET-${hex}`;
+}
+
+export type PasswordResetStatus = {
+  email: string;
+  expires_in_seconds: number;
+  resend_after_seconds: number;
+  sent: boolean;
+  delivery: string;
+};
+
+export type PasswordResetConfirm = {
+  email: string;
+  reset_token: string;
+  expires_in_seconds: number;
+};
+
+export async function requestPasswordReset(
+  email: string,
+): Promise<ApiResult<PasswordResetStatus>> {
+  return request<PasswordResetStatus>({
+    method: "POST",
+    path: "/auth/password/forgot",
+    body: { email: email.trim() },
+    auth: false,
+  });
+}
+
+export async function resendPasswordReset(
+  email: string,
+): Promise<ApiResult<PasswordResetStatus>> {
+  return request<PasswordResetStatus>({
+    method: "POST",
+    path: "/auth/password/forgot/resend",
+    body: { email: email.trim() },
+    auth: false,
+  });
+}
+
+export async function confirmPasswordReset(
+  email: string,
+  code: string,
+): Promise<ApiResult<PasswordResetConfirm>> {
+  return request<PasswordResetConfirm>({
+    method: "POST",
+    path: "/auth/password/forgot/confirm",
+    body: { email: email.trim(), code },
+    auth: false,
+  });
+}
+
+export async function resetPassword(
+  email: string,
+  resetToken: string,
+  password: string,
+): Promise<ApiResult<{ updated?: boolean }>> {
+  return request<{ updated?: boolean }>({
+    method: "POST",
+    path: "/auth/password/reset",
+    body: { email: email.trim(), reset_token: resetToken, password },
+    auth: false,
+  });
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<ApiResult<{ updated?: boolean }>> {
+  return request<{ updated?: boolean }>({
+    method: "POST",
+    path: "/auth/password/change",
+    body: { currentPassword, newPassword },
+  });
 }
