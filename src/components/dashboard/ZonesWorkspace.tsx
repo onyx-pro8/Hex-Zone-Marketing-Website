@@ -1010,7 +1010,7 @@ export function ZonesWorkspace() {
       </div>
           <p className="zone-detail-card__hint">{hint}</p>
           <div className="zone-detail-card__body">
-          <fieldset className="zones-studio__details">
+          <fieldset className="zones-studio__details" disabled={!composing}>
           {error ? <p className="community-page__status is-error">{error}</p> : null}
           {status ? <p className="dash-status">{status}</p> : null}
           {!editingId && capabilities?.can_create_zone === false ? (

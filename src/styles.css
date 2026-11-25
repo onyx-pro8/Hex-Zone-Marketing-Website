@@ -5445,6 +5445,9 @@ p {
 .zones-studio__details:disabled {
   opacity: 0.55;
 }
+.zones-studio__details:disabled .zone-detail-card__columns {
+  cursor: not-allowed;
+}
 .zone-icon-btn__wrap {
   display: grid;
   justify-items: center;
