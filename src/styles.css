@@ -3862,7 +3862,8 @@ p {
   min-width: 200px;
   justify-self: start;
 }
-.settings-page .settings-span {
+.settings-page .settings-span,
+.settings-split .settings-span {
   grid-column: 1 / -1;
 }
 .settings-section {

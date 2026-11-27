@@ -651,7 +651,7 @@ export function AccountPage() {
           </p>
           <form className="settings-form" onSubmit={(event) => void onChangePassword(event)}>
             <div className="auth-grid">
-              <div className="auth-field">
+              <div className="auth-field settings-span">
                 <label className="auth-label" htmlFor="settings-current-password">
                   Current password
                 </label>
@@ -686,7 +686,7 @@ export function AccountPage() {
                   required
                 />
               </div>
-              <div className="auth-field settings-span">
+              <div className="auth-field">
                 <label className="auth-label" htmlFor="settings-confirm-password">
                   Confirm new password
                 </label>
