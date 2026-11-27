@@ -5991,8 +5991,24 @@ p {
 .dash-hint.is-error {
   color: #b42318;
 }
-.zones-studio .dash-panel {
+.zones-studio .dash-panel:not(.zone-list-modal) {
   max-height: none;
+}
+.zones-studio .zone-list-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - 84px);
+  overflow: hidden;
+}
+.zones-studio .zone-list-modal > .community-panel__head,
+.zones-studio .zone-list-modal > .zones-studio__communal,
+.zones-studio .zone-list-modal > .community-page__status {
+  flex: none;
+}
+.zones-studio .zone-list-modal > .community-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 .ua-modal {
   position: fixed;
