@@ -4044,6 +4044,123 @@ p {
   color: #8f1d14;
   background: rgba(180, 35, 24, 0.06);
 }
+.settings-split {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.settings-split__nav {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  position: sticky;
+  top: 96px;
+  max-height: calc(100dvh - 116px);
+  overflow: auto;
+  padding-bottom: 8px;
+}
+.settings-split__group {
+  display: grid;
+  gap: 8px;
+}
+.settings-split__label {
+  margin: 10px 4px 0;
+  font: 700 11px/1.2 var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+}
+.settings-split__link {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(20, 100, 38, 0.08);
+  border-radius: 14px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+}
+.settings-split__link.is-active {
+  border-color: transparent;
+  background: var(--blue-700);
+  color: #fff;
+}
+.settings-split__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--blue-600);
+  background: rgba(45, 168, 77, 0.12);
+}
+.settings-split__link.is-active .settings-split__icon {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+}
+.settings-split__name,
+.settings-split__hint {
+  display: block;
+}
+.settings-split__name {
+  font: 700 14px/1.3 var(--font-body);
+}
+.settings-split__hint {
+  color: var(--ink-500);
+  font: 400 12px/1.35 var(--font-body);
+}
+.settings-split__link.is-active .settings-split__hint {
+  color: rgba(255, 255, 255, 0.82);
+}
+.settings-split__content {
+  min-width: 0;
+}
+.settings-panel,
+.settings-split__content .settings-section {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(20, 100, 38, 0.08);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.settings-panel__head h2,
+.settings-split__content .settings-section__title {
+  margin: 0;
+  font: 700 1.35rem/1.2 var(--font-display);
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--ink-900);
+}
+.settings-panel__head p {
+  margin: 6px 0 0;
+  color: var(--ink-500);
+  font: 400 14px/1.5 var(--font-body);
+}
+.settings-panel .settings-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.settings-split__nav .settings-logout {
+  margin-top: 4px;
+}
+@media (max-width: 859.98px) {
+  .settings-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .settings-split__nav {
+    position: static;
+    max-height: none;
+  }
+}
 .settings-card {
   display: grid;
   gap: 14px;

@@ -1,23 +1,36 @@
 import type { ReactNode } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { NavLink, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
+import { PageHero } from "../PageHero";
 
-type AccountSettingsFrameProps = {
+export type SettingsCategory = {
+  to: string;
+  label: string;
+  hint: string;
+  icon: ReactNode;
+};
+
+export type SettingsNavItem =
+  | { type: "link"; category: SettingsCategory }
+  | { type: "group"; label: string; categories: SettingsCategory[] };
+
+type SettingsShellProps = {
+  eyebrow: string;
   title: string;
   lead: string;
-  backTo?: string;
-  wide?: boolean;
+  items: SettingsNavItem[];
+  footer?: ReactNode;
   children: ReactNode;
 };
 
-export function AccountSettingsFrame({
+export function SettingsShell({
+  eyebrow,
   title,
   lead,
-  backTo,
-  wide = false,
+  items,
+  footer,
   children,
-}: AccountSettingsFrameProps) {
+}: SettingsShellProps) {
   const { token, loading } = useAuth();
   const location = useLocation();
 
@@ -27,47 +40,72 @@ export function AccountSettingsFrame({
   }
 
   return (
-    <main className="auth-page settings-page" id="main">
-      <div
-        className={`container settings-page__inner${wide ? " settings-page__inner--wide" : " settings-page__inner--narrow"}`}
-      >
-        {backTo ? (
-          <Link className="settings-back" to={backTo}>
-            Back
-          </Link>
-        ) : null}
-        <header className="settings-page__header">
-          <p className="eyebrow">Your account</p>
-          <h1 className="settings-page__title">{title}</h1>
-          <p className="settings-page__lead">{lead}</p>
-        </header>
-        {loading ? <p className="settings-status">Loading your settings…</p> : children}
-      </div>
+    <main id="main">
+      <PageHero eyebrow={eyebrow} title={title} lead={lead} />
+      <section className="page-section page-section--tint" aria-label={title}>
+        <div className="container settings-split">
+          <nav className="settings-split__nav" aria-label={title}>
+            {items.map((item) =>
+              item.type === "group" ? (
+                <div className="settings-split__group" key={item.label}>
+                  <p className="settings-split__label">{item.label}</p>
+                  <CategoryList categories={item.categories} />
+                </div>
+              ) : (
+                <CategoryList key={item.category.to} categories={[item.category]} />
+              ),
+            )}
+            {footer}
+          </nav>
+          <div className="settings-split__content">
+            {loading ? <p className="settings-status">Loading your settings…</p> : children}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
 
-export function SettingsCategoryLink({
-  to,
-  title,
-  subtitle,
-  icon,
-}: {
-  to: string;
-  title: string;
-  subtitle: string;
-  icon: ReactNode;
-}) {
+function CategoryList({ categories }: { categories: SettingsCategory[] }) {
   return (
-    <Link className="settings-nav" to={to}>
-      <span className="settings-nav__icon" aria-hidden="true">
-        {icon}
-      </span>
-      <span className="settings-nav__copy">
-        <span className="settings-nav__title">{title}</span>
-        <span className="settings-nav__subtitle">{subtitle}</span>
-      </span>
-      <ChevronRight className="settings-nav__chevron" aria-hidden="true" />
-    </Link>
+    <>
+      {categories.map((category) => (
+        <NavLink
+          key={category.to}
+          className={({ isActive }) =>
+            `settings-split__link${isActive ? " is-active" : ""}`
+          }
+          to={category.to}
+        >
+          <span className="settings-split__icon" aria-hidden="true">
+            {category.icon}
+          </span>
+          <span>
+            <span className="settings-split__name">{category.label}</span>
+            <span className="settings-split__hint">{category.hint}</span>
+          </span>
+        </NavLink>
+      ))}
+    </>
+  );
+}
+
+type AccountSettingsFrameProps = {
+  title: string;
+  lead?: string;
+  backTo?: string;
+  wide?: boolean;
+  children: ReactNode;
+};
+
+export function AccountSettingsFrame({ title, lead, children }: AccountSettingsFrameProps) {
+  return (
+    <article className="settings-panel">
+      <header className="settings-panel__head">
+        <h2>{title}</h2>
+        {lead ? <p>{lead}</p> : null}
+      </header>
+      {children}
+    </article>
   );
 }

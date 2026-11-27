@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import {
   Bell,
   BookOpen,
@@ -8,12 +8,10 @@ import {
   MessageSquareText,
   Ruler,
   Smartphone,
+  UserPlus,
 } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
-import {
-  AccountSettingsFrame,
-  SettingsCategoryLink,
-} from "../../components/account/AccountSettingsFrame";
+import { SettingsShell } from "../../components/account/AccountSettingsFrame";
 import { hasSystemAccess, isSystemAdministrator } from "../../lib/privateAccount";
 
 export function AccountSettingsPage() {
@@ -28,67 +26,106 @@ export function AccountSettingsPage() {
     navigate("/");
   }
 
+  const items = [
+    {
+      type: "link" as const,
+      category: {
+        to: "/account-settings/notifications",
+        label: "Notification",
+        hint: "Push alerts for this device",
+        icon: <Bell size={18} />,
+      },
+    },
+    {
+      type: "link" as const,
+      category: {
+        to: "/account-settings/devices",
+        label: "Device",
+        hint: "Manage registered phones and hubs",
+        icon: <Smartphone size={18} />,
+      },
+    },
+    {
+      type: "group" as const,
+      label: "Message Template",
+      categories: [
+        {
+          to: "/account-settings/message-templates/arrival",
+          label: "Arrival messages",
+          hint: "Copy guests see when they arrive",
+          icon: <MessageSquareText size={18} />,
+        },
+        {
+          to: "/account-settings/message-templates/alerts",
+          label: "Quick alert messages",
+          hint: "Preset text for the alert buttons",
+          icon: <Bell size={18} />,
+        },
+        {
+          to: "/account-settings/message-templates/welcome",
+          label: "Member welcome",
+          hint: "Greeting when an invited member joins",
+          icon: <UserPlus size={18} />,
+        },
+      ],
+    },
+    {
+      type: "link" as const,
+      category: {
+        to: "/account-settings/access-history",
+        label: "Access history",
+        hint: "Guest access permission messages",
+        icon: <History size={18} />,
+      },
+    },
+  ];
+
+  if (canGrantPermission) {
+    items.push({
+      type: "link",
+      category: {
+        to: "/account-settings/permission",
+        label: "Permission",
+        hint: "Give Technical Support access",
+        icon: <KeyRound size={18} />,
+      },
+    });
+  }
+  if (showZoneSize) {
+    items.push({
+      type: "link",
+      category: {
+        to: "/account-settings/zone-size",
+        label: "Zone size limit",
+        hint: "Each zone and the account total",
+        icon: <Ruler size={18} />,
+      },
+    });
+  }
+  items.push({
+    type: "link",
+    category: {
+      to: "/account-settings/apis",
+      label: "APIs",
+      hint: "Explore and try API endpoints",
+      icon: <BookOpen size={18} />,
+    },
+  });
+
   return (
-    <AccountSettingsFrame
+    <SettingsShell
+      eyebrow="Your account"
       title="Account settings"
       lead="Choose a category to manage"
+      items={items}
+      footer={
+        <button className="btn btn--outline settings-logout" type="button" onClick={onLogout}>
+          <LogOut size={16} aria-hidden="true" />
+          Log out
+        </button>
+      }
     >
-      <div className="settings-nav-list">
-        <SettingsCategoryLink
-          to="/account-settings/notifications"
-          title="Notification"
-          subtitle="Push alerts for this device"
-          icon={<Bell size={18} />}
-        />
-        <SettingsCategoryLink
-          to="/account-settings/devices"
-          title="Device"
-          subtitle="Manage registered phones and hubs"
-          icon={<Smartphone size={18} />}
-        />
-        <SettingsCategoryLink
-          to="/account-settings/message-templates"
-          title="Message Template"
-          subtitle="Arrival, alert, and welcome copy"
-          icon={<MessageSquareText size={18} />}
-        />
-        <SettingsCategoryLink
-          to="/account-settings/access-history"
-          title="Access history"
-          subtitle="Guest access permission messages"
-          icon={<History size={18} />}
-        />
-        {canGrantPermission ? (
-          <SettingsCategoryLink
-            to="/account-settings/permission"
-            title="Permission"
-            subtitle="Give Technical Support access"
-            icon={<KeyRound size={18} />}
-          />
-        ) : null}
-        {showZoneSize ? (
-          <SettingsCategoryLink
-            to="/account-settings/zone-size"
-            title="Zone size limit"
-            subtitle="Each zone and the account total"
-            icon={<Ruler size={18} />}
-          />
-        ) : null}
-        <SettingsCategoryLink
-          to="/account-settings/apis"
-          title="APIs"
-          subtitle="Explore and try API endpoints"
-          icon={<BookOpen size={18} />}
-        />
-      </div>
-      <button
-        className="btn btn--outline settings-logout"
-        type="button"
-        onClick={onLogout}
-      >
-        <LogOut size={16} aria-hidden="true" />
-        Log out
-      </button>
-    </AccountSettingsFrame>
+      <Outlet />
+    </SettingsShell>
   );
 }
