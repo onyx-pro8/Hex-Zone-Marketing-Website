@@ -63,6 +63,7 @@ import {
   moveRingVertex,
   removeRingVertex,
   formatAreaLimit,
+  governmentAreaConfig,
   governmentReferenceId,
   h3CellsAreaM2,
   isClosedRing,
@@ -612,20 +613,31 @@ export function ZonesWorkspace() {
       }
     }
     if (next === "government_local_code") {
-      setGovMode(cfg.address_mode === "street" ? "street" : "postal");
-      setPostal(typeof cfg.postal_code === "string" ? cfg.postal_code : "");
-      setCity(typeof cfg.city === "string" ? cfg.city : "");
-      setCountry(typeof cfg.country === "string" ? cfg.country : "");
-      setStreet(typeof cfg.street === "string" ? cfg.street : "");
-      setStreetNumber(typeof cfg.street_number === "string" ? cfg.street_number : "");
+      const mode = cfg.address_mode === "street" ? "street" : "postal";
+      const postalCode = typeof cfg.postal_code === "string" ? cfg.postal_code : "";
+      const cityName = typeof cfg.city === "string" ? cfg.city : "";
+      const countryName = typeof cfg.country === "string" ? cfg.country : "";
+      const streetName = typeof cfg.street === "string" ? cfg.street : "";
+      const number = typeof cfg.street_number === "string" ? cfg.street_number : "";
+      const areaConfig = governmentAreaConfig(
+        { mode, postal: postalCode, city: cityName, country: countryName, street: streetName, streetNumber: number },
+        cfg,
+      );
+      setGovMode(mode);
+      setPostal(postalCode);
+      setCity(cityName);
+      setCountry(countryName);
+      setStreet(streetName);
+      setStreetNumber(number);
       if (rings.length > 0) {
         setGovResult({
           valid: true,
           zone_type: "government_local_code",
-          reference_id: typeof cfg.local_code === "string" ? cfg.local_code : "",
+          reference_id: String(areaConfig.local_code),
           display_name: typeof cfg.display_name === "string" ? cfg.display_name : zone.name,
           geometry: zone.geometry,
           h3_cells: Array.isArray(zone.h3_cells) ? zone.h3_cells : [],
+          config: areaConfig,
         });
       }
     }
@@ -884,7 +896,13 @@ export function ZonesWorkspace() {
             ? (govResult.geometry.geo_fence_polygon as Record<string, unknown>)
             : undefined,
         h3_cells: govResult.h3_cells,
-        config: { ...(govResult.config ?? {}), ...attach },
+        config: {
+          ...governmentAreaConfig(
+            { mode: govMode, postal, city, country, street, streetNumber },
+            govResult.config,
+          ),
+          ...attach,
+        },
       };
     } else if (tool === "object" && objectCenter) {
       payload = {
