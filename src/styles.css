@@ -5183,11 +5183,22 @@ p {
   color: #b42318;
   border-color: rgba(180, 35, 24, 0.35);
 }
-.dash-compose-layout {
+.dash-compose-layout,
+.dash-message {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-  gap: 18px;
+  gap: 16px;
   align-items: start;
+}
+.dash-message__bar {
+  display: flex;
+  justify-content: flex-end;
+}
+.dash-compose-launch {
+  width: 100%;
+  margin-top: 4px;
+}
+.dash-message .zone-detail-modal__card {
+  width: min(720px, 100%);
 }
 .dash-compose {
   max-width: none;

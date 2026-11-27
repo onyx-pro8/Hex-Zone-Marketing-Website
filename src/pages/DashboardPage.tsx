@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { Map, PenLine, Users } from "lucide-react";
+import { Map, MessageSquare, PenLine, Users } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { ComposeWorkspace } from "../components/dashboard/ComposeWorkspace";
 import { MembersWorkspace } from "../components/dashboard/MembersWorkspace";
@@ -24,15 +24,16 @@ const TABS: { id: DashboardTab; label: string; hint: string; icon: ReactNode }[]
   },
   {
     id: "compose",
-    label: "Compose",
-    hint: "Send a message",
-    icon: <PenLine size={18} />,
+    label: "Message",
+    hint: "Inbox and alerts",
+    icon: <MessageSquare size={18} />,
   },
 ];
 
 export function DashboardPage() {
   const { token, loading } = useAuth();
   const [tab, setTab] = useState<DashboardTab>("zones");
+  const [composeOpen, setComposeOpen] = useState(false);
 
   if (loading) {
     return (
@@ -77,11 +78,27 @@ export function DashboardPage() {
                 </span>
               </button>
             ))}
+            <button
+              className="btn btn--primary dash-compose-launch"
+              type="button"
+              onClick={() => {
+                setTab("compose");
+                setComposeOpen(true);
+              }}
+            >
+              <PenLine size={16} aria-hidden="true" />
+              Compose
+            </button>
           </nav>
           <div className="settings-split__content">
             {tab === "zones" ? <ZonesWorkspace /> : null}
             {tab === "members" ? <MembersWorkspace /> : null}
-            {tab === "compose" ? <ComposeWorkspace /> : null}
+            {tab === "compose" ? (
+              <ComposeWorkspace
+                composeOpen={composeOpen}
+                onComposeOpenChange={setComposeOpen}
+              />
+            ) : null}
           </div>
         </div>
       </section>

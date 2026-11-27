@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { PenLine, X } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
 import {
   getOrCreateWebHid,
@@ -283,7 +283,13 @@ function toggleZone(
   return next;
 }
 
-export function ComposeWorkspace() {
+export function ComposeWorkspace({
+  composeOpen,
+  onComposeOpenChange,
+}: {
+  composeOpen: boolean;
+  onComposeOpenChange: (open: boolean) => void;
+}) {
   const { user } = useAuth();
   const systemAdmin = isSystemAdministrator(user);
   const [type, setType] = useState<MessageType>("PA");
@@ -609,6 +615,7 @@ export function ComposeWorkspace() {
       setStatus("Message sent.");
       setBody("");
       setImages([]);
+      onComposeOpenChange(false);
       void loadInbox();
       return;
     }
@@ -672,6 +679,7 @@ export function ComposeWorkspace() {
     setReceiverId("");
     setQuery("");
     setImages([]);
+    onComposeOpenChange(false);
     void loadInbox();
   }
 
@@ -740,11 +748,40 @@ export function ComposeWorkspace() {
   }
 
   return (
-    <div className="dash-compose-layout">
-    <section className="dash-card dash-compose" aria-labelledby="dash-compose-title">
-      <h2 className="community-panel__title" id="dash-compose-title">
-        Compose message
-      </h2>
+    <div className="dash-message">
+    <div className="dash-message__bar">
+      <button className="btn btn--primary" type="button" onClick={() => onComposeOpenChange(true)}>
+        <PenLine size={16} aria-hidden="true" />
+        Compose
+      </button>
+    </div>
+    {status && !composeOpen ? <p className="dash-status">{status}</p> : null}
+    {composeOpen ? (
+    <div
+      className="zone-detail-modal"
+      role="presentation"
+      onClick={() => onComposeOpenChange(false)}
+    >
+    <section
+      className="zone-detail-modal__card dash-card dash-compose"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dash-compose-title"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="dash-card__head">
+        <h2 className="community-panel__title" id="dash-compose-title">
+          Compose message
+        </h2>
+        <button
+          type="button"
+          className="ua-modal__close"
+          aria-label="Close compose"
+          onClick={() => onComposeOpenChange(false)}
+        >
+          <X size={18} />
+        </button>
+      </div>
       <p className="dash-hint">Sending as {broadcastName}</p>
 
       <p className="dash-label">Message type</p>
@@ -1023,6 +1060,8 @@ export function ComposeWorkspace() {
         {sending ? "Sending…" : "Send message"}
       </button>
     </section>
+    </div>
+    ) : null}
 
     {showReceivers ? (
       <div
