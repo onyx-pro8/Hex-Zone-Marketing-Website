@@ -285,14 +285,16 @@ export function photonPlaceId(feature: PhotonFeature, coords: LatLng): string {
   return `place-${coords[0].toFixed(4)}-${coords[1].toFixed(4)}`;
 }
 
-export function governmentReferenceId(fields: {
+export type GovernmentAddressFields = {
   mode: "postal" | "street";
   postal: string;
   city: string;
   country: string;
   street: string;
   streetNumber: string;
-}): string {
+};
+
+export function governmentReferenceId(fields: GovernmentAddressFields): string {
   const country = fields.country.trim().toUpperCase();
   const city = fields.city.trim().toUpperCase();
   const postal = fields.postal.trim().toUpperCase();
@@ -300,6 +302,30 @@ export function governmentReferenceId(fields: {
     return [country, fields.street.trim().toUpperCase(), fields.streetNumber.trim().toUpperCase(), postal, city].join("|");
   }
   return [country, postal, city].filter(Boolean).join("|");
+}
+
+/** City-code config the API accepts. Keeps a stored local_code when the form is reopened. */
+export function governmentAreaConfig(
+  fields: GovernmentAddressFields,
+  existing?: Record<string, unknown> | null,
+): Record<string, unknown> {
+  const derived = governmentReferenceId(fields);
+  const stored = existing?.local_code;
+  const localCode = typeof stored === "string" && stored.trim() ? stored.trim() : derived;
+  const storedArea = existing?.area_code;
+  const areaCode = typeof storedArea === "string" && storedArea.trim() ? storedArea.trim() : localCode;
+  return {
+    ...(existing ?? {}),
+    local_code: localCode,
+    area_code: areaCode,
+    address_mode: fields.mode,
+    postal_code: fields.postal.trim(),
+    city: fields.city.trim(),
+    country: fields.country.trim(),
+    street: fields.mode === "street" ? fields.street.trim() : "",
+    street_number: fields.mode === "street" ? fields.streetNumber.trim() : "",
+    code_type: fields.mode === "street" ? "street" : "postal",
+  };
 }
 
 export function configRecord(zone: CommunalZone): Record<string, unknown> {

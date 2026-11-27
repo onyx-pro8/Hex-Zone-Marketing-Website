@@ -3,6 +3,7 @@ import { request } from "./client";
 export type Member = {
   id: string;
   name: string;
+  broadcast_name?: string | null;
   username?: string;
   email?: string;
   first_name?: string;
@@ -61,6 +62,12 @@ function normalizeMember(raw: unknown): Member | null {
         ? name
         : `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() ||
           String(row.username ?? row.email ?? "Member"),
+    broadcast_name:
+      typeof row.broadcast_name === "string" && row.broadcast_name.trim()
+        ? row.broadcast_name.trim()
+        : typeof row.broadcastName === "string" && row.broadcastName.trim()
+          ? row.broadcastName.trim()
+          : null,
     username:
       typeof row.username === "string" && row.username.trim()
         ? row.username.trim().toLowerCase()

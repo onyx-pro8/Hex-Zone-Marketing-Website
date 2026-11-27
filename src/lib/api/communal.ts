@@ -4,6 +4,7 @@ export type CommunalIdRow = {
   reference_id: string;
   creator_id?: number | null;
   creator_name?: string | null;
+  creator_broadcast_name?: string | null;
   network_id: string;
   zone_count: number;
   created_at?: string | null;
@@ -78,6 +79,7 @@ export async function listZonesForCommunalId(referenceId: string) {
 export type CommunalJoinedMember = {
   id: string;
   name: string;
+  broadcast_name?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   username?: string | null;

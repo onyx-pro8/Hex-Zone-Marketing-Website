@@ -21,6 +21,17 @@ function isTechnicalSupport(
   return staff === "technical_support" || staff === "tech_support";
 }
 
+/** Administrator, including accounts whose role is implied by registration type. */
+export function isAccountAdministrator(
+  user: Pick<AuthUser, "role" | "registrationType" | "registration_type"> | null | undefined,
+): boolean {
+  if (!user) return false;
+  const role = String(user.role ?? "").toLowerCase();
+  if (role) return role !== "user";
+  const registration = String(user.registrationType ?? user.registration_type ?? "").toUpperCase();
+  return registration !== "USER";
+}
+
 /** Private-tier administrator. Technical Support is not a system admin. */
 export function isSystemAdministrator(
   user:
@@ -38,6 +49,25 @@ export function isSystemAdministrator(
   if (!user || isTechnicalSupport(user)) return false;
   if (String(user.role ?? "").toLowerCase() !== "administrator") return false;
   return isPrivateAccount(user);
+}
+
+/** System administrator, or Technical Support on a Private account. */
+export function hasSystemAccess(
+  user:
+    | Pick<
+        AuthUser,
+        | "accountType"
+        | "account_type"
+        | "role"
+        | "platform_staff_role"
+        | "platformStaffRole"
+      >
+    | null
+    | undefined,
+): boolean {
+  if (!user) return false;
+  if (isTechnicalSupport(user) && isPrivateAccount(user)) return true;
+  return isSystemAdministrator(user);
 }
 
 export function accountTypeLabel(type?: string | null): string {

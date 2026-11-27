@@ -1,24 +1,39 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
+import { Map, MessageSquare, Users } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { ComposeWorkspace } from "../components/dashboard/ComposeWorkspace";
 import { MembersWorkspace } from "../components/dashboard/MembersWorkspace";
-import { PermissionWorkspace } from "../components/dashboard/PermissionWorkspace";
 import { ZonesWorkspace } from "../components/dashboard/ZonesWorkspace";
 import { PageHero } from "../components/PageHero";
-import { accountTypeLabel, isSystemAdministrator } from "../lib/privateAccount";
 
-type DashboardTab = "zones" | "members" | "compose" | "permission";
+type DashboardTab = "zones" | "members" | "compose";
 
-const TABS: { id: DashboardTab; label: string }[] = [
-  { id: "zones", label: "Zones" },
-  { id: "members", label: "Members" },
-  { id: "compose", label: "Compose" },
+const TABS: { id: DashboardTab; label: string; hint: string; icon: ReactNode }[] = [
+  {
+    id: "zones",
+    label: "Zones",
+    hint: "Draw and manage your zones",
+    icon: <Map size={18} />,
+  },
+  {
+    id: "members",
+    label: "Members",
+    hint: "People on your network",
+    icon: <Users size={18} />,
+  },
+  {
+    id: "compose",
+    label: "Message",
+    hint: "Inbox and alerts",
+    icon: <MessageSquare size={18} />,
+  },
 ];
 
 export function DashboardPage() {
-  const { user, token, loading } = useAuth();
+  const { token, loading } = useAuth();
   const [tab, setTab] = useState<DashboardTab>("zones");
+  const [composeOpen, setComposeOpen] = useState(false);
 
   if (loading) {
     return (
@@ -36,43 +51,44 @@ export function DashboardPage() {
     return <Navigate to="/login?next=/dashboard" replace />;
   }
 
-  const canGrantPermission = isSystemAdministrator(user);
-  const tabs = canGrantPermission
-    ? [...TABS, { id: "permission" as const, label: "Permission" }]
-    : TABS;
-  const accountLabel = accountTypeLabel(user?.accountType ?? user?.account_type);
-
   return (
     <main id="main">
       <PageHero
-        eyebrow={accountLabel}
+        eyebrow="Your account"
         title="Dashboard"
-        lead={
-          canGrantPermission
-            ? "Manage your zones, network members, and messages, and give Technical Support permission."
-            : "Manage your zones, network members, and messages."
-        }
+        lead="Manage your zones, network members, and messages."
       />
       <section className="page-section page-section--tint" aria-label="Dashboard">
-        <div className="container dash-page">
-          <div className="dash-tabs" role="tablist" aria-label="Dashboard">
-            {tabs.map((item) => (
+        <div className="container settings-split">
+          <nav className="settings-split__nav" aria-label="Dashboard">
+            {TABS.map((item) => (
               <button
                 key={item.id}
                 type="button"
-                role="tab"
-                aria-selected={tab === item.id}
-                className={`dash-tab${tab === item.id ? " is-active" : ""}`}
+                aria-current={tab === item.id ? "page" : undefined}
+                className={`settings-split__link${tab === item.id ? " is-active" : ""}`}
                 onClick={() => setTab(item.id)}
               >
-                {item.label}
+                <span className="settings-split__icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span>
+                  <span className="settings-split__name">{item.label}</span>
+                  <span className="settings-split__hint">{item.hint}</span>
+                </span>
               </button>
             ))}
+          </nav>
+          <div className="settings-split__content">
+            {tab === "zones" ? <ZonesWorkspace /> : null}
+            {tab === "members" ? <MembersWorkspace /> : null}
+            {tab === "compose" ? (
+              <ComposeWorkspace
+                composeOpen={composeOpen}
+                onComposeOpenChange={setComposeOpen}
+              />
+            ) : null}
           </div>
-          {tab === "zones" ? <ZonesWorkspace /> : null}
-          {tab === "members" ? <MembersWorkspace /> : null}
-          {tab === "compose" ? <ComposeWorkspace /> : null}
-          {tab === "permission" && canGrantPermission ? <PermissionWorkspace /> : null}
         </div>
       </section>
     </main>

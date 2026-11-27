@@ -171,7 +171,8 @@ export function MembersWorkspace() {
         {myZoneId ? ` Your network is ${myZoneId}.` : ""}
       </p>
 
-      <div className="dash-chips" role="tablist" aria-label="Member filters">
+      <div className="member-filters" role="group" aria-label="Filter members">
+        <span className="member-filters__label">Filter</span>
         {(
           [
             ["same-zone", myZoneId ? "Same zone" : "Same zone (none)"],
@@ -186,7 +187,8 @@ export function MembersWorkspace() {
           <button
             key={id}
             type="button"
-            className={`dash-chip${filter === id ? " is-active" : ""}`}
+            aria-pressed={filter === id}
+            className={`member-filters__chip${filter === id ? " is-active" : ""}`}
             onClick={() => setFilter(id)}
           >
             {label}

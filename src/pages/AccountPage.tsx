@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { AddressAutocompleteInput } from "../components/AddressAutocompleteInput";
-import { PermissionWorkspace } from "../components/dashboard/PermissionWorkspace";
 import { useAuth } from "../auth/useAuth";
 import {
   checkUsernameAvailable,
@@ -63,7 +62,11 @@ function sanitizeAddressValue(value?: string | null): string {
   return trimmed;
 }
 
+const USER_SECTIONS = ["profile", "address", "password", "subscription"] as const;
+type UserSection = (typeof USER_SECTIONS)[number];
+
 export function AccountPage() {
+  const { section } = useParams();
   const { user, token, loading, logout, refreshUser, setUserAvatar } =
     useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -104,12 +107,6 @@ export function AccountPage() {
   const previewSrc = useAuthenticatedAvatarSrc(avatarUrl);
   const accountType = user?.accountType ?? user?.account_type;
   const systemAccount = String(accountType ?? "").toUpperCase() === "PRIVATE";
-  const canGrantPermission =
-    systemAccount &&
-    String(user?.role ?? "").toLowerCase() === "administrator" &&
-    String(user?.platform_staff_role ?? user?.platformStaffRole ?? "none")
-      .toLowerCase()
-      .replace(/[\s-]+/g, "_") !== "technical_support";
   const roleLabel =
     String(user?.role ?? "").toLowerCase() === "administrator"
       ? "Administrator"
@@ -184,6 +181,13 @@ export function AccountPage() {
 
   if (!loading && !token) {
     return <Navigate to="/login?next=/account" replace />;
+  }
+
+  const active: UserSection = USER_SECTIONS.includes(section as UserSection)
+    ? (section as UserSection)
+    : "profile";
+  if (section && !USER_SECTIONS.includes(section as UserSection)) {
+    return <Navigate to="/account/profile" replace />;
   }
 
   async function validateUsernameOnFinish(
@@ -408,21 +412,12 @@ export function AccountPage() {
     user?.id != null ? absolutizeAvatarUrl(`/owners/${user.id}/avatar`) : null;
 
   return (
-    <main className="auth-page settings-page" id="main">
-      <div className="container settings-page__inner">
-        <header className="settings-page__header">
-          <p className="eyebrow">Your account</p>
-          <h1 className="settings-page__title">User settings</h1>
-          <p className="settings-page__lead">
-            Profile, avatar, address, and subscription — same account as the
-            mobile app.
-          </p>
-        </header>
-
+    <>
         {loading ? (
           <p className="settings-status">Loading your settings…</p>
         ) : null}
 
+        {active === "profile" ? (
         <section className="settings-section" aria-labelledby="profile-title">
           <h2 className="settings-section__title" id="profile-title">
             Profile
@@ -585,7 +580,9 @@ export function AccountPage() {
             </button>
           </form>
         </section>
+        ) : null}
 
+        {active === "address" ? (
         <section className="settings-section" aria-labelledby="identity-title">
           <h2 className="settings-section__title" id="identity-title">
             Address & broadcast
@@ -642,7 +639,9 @@ export function AccountPage() {
             </button>
           </form>
         </section>
+        ) : null}
 
+        {active === "password" ? (
         <section className="settings-section" aria-labelledby="password-title">
           <h2 className="settings-section__title" id="password-title">
             Password
@@ -652,7 +651,7 @@ export function AccountPage() {
           </p>
           <form className="settings-form" onSubmit={(event) => void onChangePassword(event)}>
             <div className="auth-grid">
-              <div className="auth-field">
+              <div className="auth-field settings-span">
                 <label className="auth-label" htmlFor="settings-current-password">
                   Current password
                 </label>
@@ -687,7 +686,7 @@ export function AccountPage() {
                   required
                 />
               </div>
-              <div className="auth-field settings-span">
+              <div className="auth-field">
                 <label className="auth-label" htmlFor="settings-confirm-password">
                   Confirm new password
                 </label>
@@ -721,16 +720,9 @@ export function AccountPage() {
             </button>
           </form>
         </section>
-
-        {canGrantPermission ? (
-          <section className="settings-section" aria-labelledby="permission-title">
-            <h2 className="settings-section__title" id="permission-title">
-              Permission
-            </h2>
-            <PermissionWorkspace />
-          </section>
         ) : null}
 
+        {active === "subscription" ? (
         <section
           className="settings-section"
           aria-labelledby="subscription-title"
@@ -762,18 +754,22 @@ export function AccountPage() {
             </div>
           </div>
         </section>
+        ) : null}
 
-        {error ? (
-          <p className="auth-error" role="alert">
-            {error}
-          </p>
+        {active === "profile" || active === "address" ? (
+          <>
+            {error ? (
+              <p className="auth-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+            {status ? (
+              <p className="settings-status is-ok" role="status">
+                {status}
+              </p>
+            ) : null}
+          </>
         ) : null}
-        {status ? (
-          <p className="settings-status is-ok" role="status">
-            {status}
-          </p>
-        ) : null}
-      </div>
-    </main>
+    </>
   );
 }
