@@ -6,3 +6,5 @@ export * from "./messages";
 export * from "./subscription";
 export * from "./profile";
 export * from "./zones";
+export * from "./devices";
+export * from "./guestArrival";

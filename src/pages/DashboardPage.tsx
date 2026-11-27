@@ -3,12 +3,11 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { ComposeWorkspace } from "../components/dashboard/ComposeWorkspace";
 import { MembersWorkspace } from "../components/dashboard/MembersWorkspace";
-import { PermissionWorkspace } from "../components/dashboard/PermissionWorkspace";
 import { ZonesWorkspace } from "../components/dashboard/ZonesWorkspace";
 import { PageHero } from "../components/PageHero";
-import { accountTypeLabel, isSystemAdministrator } from "../lib/privateAccount";
+import { accountTypeLabel } from "../lib/privateAccount";
 
-type DashboardTab = "zones" | "members" | "compose" | "permission";
+type DashboardTab = "zones" | "members" | "compose";
 
 const TABS: { id: DashboardTab; label: string }[] = [
   { id: "zones", label: "Zones" },
@@ -36,10 +35,6 @@ export function DashboardPage() {
     return <Navigate to="/login?next=/dashboard" replace />;
   }
 
-  const canGrantPermission = isSystemAdministrator(user);
-  const tabs = canGrantPermission
-    ? [...TABS, { id: "permission" as const, label: "Permission" }]
-    : TABS;
   const accountLabel = accountTypeLabel(user?.accountType ?? user?.account_type);
 
   return (
@@ -47,16 +42,12 @@ export function DashboardPage() {
       <PageHero
         eyebrow={accountLabel}
         title="Dashboard"
-        lead={
-          canGrantPermission
-            ? "Manage your zones, network members, and messages, and give Technical Support permission."
-            : "Manage your zones, network members, and messages."
-        }
+        lead="Manage your zones, network members, and messages."
       />
       <section className="page-section page-section--tint" aria-label="Dashboard">
         <div className="container dash-page">
           <div className="dash-tabs" role="tablist" aria-label="Dashboard">
-            {tabs.map((item) => (
+            {TABS.map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -72,7 +63,6 @@ export function DashboardPage() {
           {tab === "zones" ? <ZonesWorkspace /> : null}
           {tab === "members" ? <MembersWorkspace /> : null}
           {tab === "compose" ? <ComposeWorkspace /> : null}
-          {tab === "permission" && canGrantPermission ? <PermissionWorkspace /> : null}
         </div>
       </section>
     </main>

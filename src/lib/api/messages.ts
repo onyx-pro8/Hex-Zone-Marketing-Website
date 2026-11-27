@@ -326,6 +326,85 @@ export async function listInboxMessages(ownerId: number) {
   return { messages, error };
 }
 
+export type AccessHistoryItem = {
+  id: string;
+  body: string;
+  zoneId: string;
+  zoneLabel: string;
+  senderName: string;
+  createdAt: string;
+};
+
+function normalizeAccessHistory(raw: unknown): AccessHistoryItem | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  const type = (readText(row.type) || readText(row.message_type)).toUpperCase();
+  if (type !== "PERMISSION") return null;
+  const msg =
+    row.msg && typeof row.msg === "object" && !Array.isArray(row.msg)
+      ? (row.msg as Record<string, unknown>)
+      : null;
+  const metadata =
+    row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+      ? (row.metadata as Record<string, unknown>)
+      : null;
+  const status =
+    readText(metadata?.status) ||
+    readText(metadata?.state) ||
+    readText(row.status);
+  const body =
+    readText(row.message) ||
+    readText(row.text) ||
+    readText(msg?.description) ||
+    readText(msg?.text) ||
+    (status ? `Permission ${status}` : "(Permission traffic)");
+  const zoneId = readText(row.zone_id) || readText(row.zoneId);
+  const zoneLabel =
+    readText(row.relevant_zone_label) ||
+    readText(row.relevantZoneLabel) ||
+    readText(row.relevant_zone_name) ||
+    zoneId ||
+    "Zone";
+  const createdAt = readTime(row.created_at) || readTime(row.createdAt);
+  const id = row.id == null ? "" : String(row.id);
+  if (!id || !createdAt) return null;
+  return {
+    id,
+    body,
+    zoneId: zoneId || zoneLabel,
+    zoneLabel,
+    senderName: readText(row.broadcast_name) || readText(row.broadcastName) || "Guest",
+    createdAt,
+  };
+}
+
+/** Guest access permission messages, newest first. */
+export async function listAccessHistory(ownerId: number) {
+  const items: AccessHistoryItem[] = [];
+  let error: string | null = null;
+  const pageSize = 100;
+  for (let page = 0; page < 6; page += 1) {
+    const result = await request<unknown>({
+      method: "GET",
+      path: `/messages?owner_id=${encodeURIComponent(String(ownerId))}&skip=${page * pageSize}&limit=${pageSize}`,
+    });
+    if (result.error) {
+      error = result.error;
+      break;
+    }
+    const rows = extractMessageRows(result.data);
+    for (const row of rows) {
+      const item = normalizeAccessHistory(row);
+      if (item) items.push(item);
+    }
+    if (rows.length < pageSize) break;
+  }
+  items.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+  return { items, error };
+}
+
 export async function uploadMessageImage(imageDataUrl: string) {
   return request<{ url: string }>({
     method: "POST",

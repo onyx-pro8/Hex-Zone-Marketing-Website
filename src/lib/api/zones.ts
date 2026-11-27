@@ -140,6 +140,30 @@ export async function validateZoneReference(body: Record<string, unknown>) {
   });
 }
 
+export type ZoneSizeRule = {
+  account_type: string;
+  role: "administrator" | "user" | string;
+  each_zone_m2: number | null;
+  each_unit: "m2" | "km2" | string;
+  total_m2: number | null;
+  total_unit: "m2" | "km2" | string;
+};
+
+export async function getZoneAreaLimits() {
+  return request<{ rules: ZoneSizeRule[] }>({
+    method: "GET",
+    path: "/zones/area-limits",
+  });
+}
+
+export async function updateZoneAreaLimits(rules: ZoneSizeRule[]) {
+  return request<{ rules: ZoneSizeRule[] }>({
+    method: "PUT",
+    path: "/zones/area-limits",
+    body: { rules },
+  });
+}
+
 export async function generateZoneReference(body?: {
   reference_id?: string;
   persist?: boolean;
