@@ -114,6 +114,25 @@ function zoneOwnerId(zone: CommunalZone): string | null {
   return null;
 }
 
+function parseMemberJoinWelcome(raw: string): string | null {
+  try {
+    const parsed = JSON.parse(raw) as { type?: unknown; data?: unknown };
+    if (parsed.type !== "NEW_MESSAGE") return null;
+    const data =
+      parsed.data != null && typeof parsed.data === "object" && !Array.isArray(parsed.data)
+        ? (parsed.data as Record<string, unknown>)
+        : null;
+    if (!data) return null;
+    const flagged =
+      data.member_join_welcome === true || data.memberJoinWelcome === true;
+    if (!flagged) return null;
+    const text = typeof data.message === "string" ? data.message.trim() : "";
+    return text || null;
+  } catch {
+    return null;
+  }
+}
+
 function cleanOwnerName(value: string | null | undefined, fallback: string): string {
   const ownerName = String(value ?? "").trim();
   if (ownerName && !/^owner\s*#?\d+$/i.test(ownerName)) return ownerName;
@@ -336,6 +355,7 @@ export function CommunityPage() {
   const [focus, setFocus] = useState<MapFocusTarget | null>(null);
   const [socketEpoch, setSocketEpoch] = useState(0);
   const [socketOpen, setSocketOpen] = useState(false);
+  const [welcomeMessage, setWelcomeMessage] = useState("");
 
   const meId = user?.id != null ? String(user.id) : null;
   const profileCommunalId = user?.communalId ?? user?.communal_id;
@@ -366,7 +386,7 @@ export function CommunityPage() {
       setPickedCommunalId((current) =>
         chooseCommunalId(current, communalOptionsForUser(rows, meId, profileCommunalId), profileCommunalId),
       );
-      if (!isRefresh) setCatalogLoading(false);
+      setCatalogLoading(false);
     }
 
     void loadCatalog(socketEpoch > 0);
@@ -412,7 +432,7 @@ export function CommunityPage() {
       } else {
         setJoinedMembers(withLivePresence(joinedRes.data ?? []));
       }
-      if (!isRefresh) setDetailLoading(false);
+      setDetailLoading(false);
     }
 
     void loadDetail(false);
@@ -433,8 +453,21 @@ export function CommunityPage() {
     });
   }, []);
 
+  const communalIdRef = useRef(communalId);
+  communalIdRef.current = communalId;
+
   useEffect(() => {
     return subscribeRealtimeMessages((raw) => {
+      const welcome = parseMemberJoinWelcome(raw);
+      if (welcome) {
+        setWelcomeMessage(welcome);
+        const id = communalIdRef.current;
+        if (id) {
+          void listMembersForCommunalId(id).then((result) => {
+            if (result.data) setJoinedMembers(withLivePresence(result.data));
+          });
+        }
+      }
       const evt = parseMemberPresenceEvent(raw);
       if (!evt) return;
       const id = String(evt.ownerId);
@@ -614,6 +647,7 @@ export function CommunityPage() {
     setFocus(null);
     setZones([]);
     setJoinedMembers([]);
+    setWelcomeMessage("");
   }
 
   if (!authLoading && !token) {
@@ -666,7 +700,11 @@ export function CommunityPage() {
 
       <section className="page-section page-section--tint" aria-label="Community workspace">
         <div className="container community-page">
-        {authLoading || loading ? (
+        {welcomeMessage ? (
+          <p className="community-welcome" role="status">
+            {welcomeMessage}
+          </p>
+        ) : !communalId && (authLoading || loading) ? (
           <p className="community-page__status">Loading community…</p>
         ) : null}
         {error ? (

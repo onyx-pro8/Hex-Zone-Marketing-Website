@@ -4472,6 +4472,16 @@ p {
   color: var(--ink-500);
   font: 500 14px/1.4 var(--font-body);
 }
+.community-welcome {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid rgba(20, 100, 38, 0.14);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  color: #146426;
+  font: 600 15px/1.45 var(--font-body);
+  box-shadow: var(--shadow-sm);
+}
 .community-page__status.is-error {
   color: #b42318;
 }
