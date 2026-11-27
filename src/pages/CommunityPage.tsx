@@ -120,10 +120,20 @@ function cleanOwnerName(value: string | null | undefined, fallback: string): str
   return fallback;
 }
 
+function visibleName(
+  broadcast: string | null | undefined,
+  accountName: string | null | undefined,
+  fallback: string,
+): string {
+  const alias = String(broadcast ?? "").trim();
+  if (alias) return alias;
+  return cleanOwnerName(accountName, fallback);
+}
+
 function joinedMemberToPerson(row: CommunalJoinedMember): CommunityPerson {
   return {
     id: String(row.id),
-    name: row.name,
+    name: visibleName(row.broadcast_name, row.name, "Member"),
     email: row.email ?? undefined,
     address: row.address ?? undefined,
     role: row.role ?? undefined,
@@ -172,10 +182,11 @@ function buildCreatorInfo(
     }
   }
 
-  const name =
-    cleanOwnerName(registry.creator_name, "") ||
-    member?.name ||
-    (creatorId ? `Creator ${creatorId}` : "Unknown creator");
+  const name = visibleName(
+    registry.creator_broadcast_name || member?.broadcast_name,
+    cleanOwnerName(registry.creator_name, "") || member?.name,
+    creatorId ? `Creator ${creatorId}` : "Unknown creator",
+  );
 
   return {
     id: creatorId,
