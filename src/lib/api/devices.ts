@@ -19,8 +19,24 @@ export type DeviceRecord = {
   is_online?: boolean;
   last_seen?: string;
   enable_notification?: boolean;
+  webhook?: string;
+  periodical_check_sec?: string;
+  zone_ids?: number[];
   created_at?: string;
   updated_at?: string;
+};
+
+export type CreateDevicePayload = {
+  hid: string;
+  name: string;
+  address?: string;
+  webhook?: string;
+  periodical_check_sec?: string;
+  zone_ids?: number[];
+  enable_notification?: boolean;
+  propagate_enabled?: boolean;
+  is_online?: boolean;
+  active?: boolean;
 };
 
 export async function getDevices() {
@@ -40,9 +56,48 @@ export async function getDevices() {
   };
 }
 
+export async function createDevice(payload: CreateDevicePayload) {
+  return request<DeviceRecord>({
+    method: "POST",
+    path: "/devices/",
+    body: {
+      address: payload.address ?? "Unknown",
+      latitude: 0,
+      longitude: 0,
+      propagate_enabled: payload.propagate_enabled ?? true,
+      propagate_radius_km: 2.5,
+      enable_notification: payload.enable_notification ?? true,
+      alert_threshold_meters: 100,
+      update_interval_seconds: 60,
+      active: payload.active ?? true,
+      status: true,
+      is_online: payload.is_online ?? false,
+      hid: payload.hid,
+      name: payload.name,
+      ...(payload.webhook != null ? { webhook: payload.webhook } : {}),
+      ...(payload.periodical_check_sec != null
+        ? { periodical_check_sec: payload.periodical_check_sec }
+        : {}),
+      ...(payload.zone_ids != null ? { zone_ids: payload.zone_ids } : {}),
+    },
+  });
+}
+
 export async function updateDevice(
   deviceId: number | string,
-  payload: Partial<Pick<DeviceRecord, "name" | "is_online" | "enable_notification" | "active">>,
+  payload: Partial<
+    Pick<
+      DeviceRecord,
+      | "name"
+      | "address"
+      | "is_online"
+      | "enable_notification"
+      | "active"
+      | "webhook"
+      | "periodical_check_sec"
+      | "zone_ids"
+    >
+  >,
 ) {
   return request<DeviceRecord>({
     method: "PATCH",

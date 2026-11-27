@@ -4472,6 +4472,21 @@ p {
   color: var(--ink-500);
   font: 500 14px/1.4 var(--font-body);
 }
+.hub-modal {
+  width: min(640px, 100%);
+  display: grid;
+  gap: 14px;
+}
+.hub-zones {
+  display: grid;
+  gap: 8px;
+}
+.hub-zones label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 500 14px/1.4 var(--font-body);
+}
 .community-welcome {
   margin: 0;
   padding: 12px 16px;
