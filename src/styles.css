@@ -5193,10 +5193,6 @@ p {
   display: flex;
   justify-content: flex-end;
 }
-.dash-compose-launch {
-  width: 100%;
-  margin-top: 4px;
-}
 .dash-message .zone-detail-modal__card {
   width: min(720px, 100%);
 }

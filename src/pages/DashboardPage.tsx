@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { Map, MessageSquare, PenLine, Users } from "lucide-react";
+import { Map, MessageSquare, Users } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { ComposeWorkspace } from "../components/dashboard/ComposeWorkspace";
 import { MembersWorkspace } from "../components/dashboard/MembersWorkspace";
@@ -78,17 +78,6 @@ export function DashboardPage() {
                 </span>
               </button>
             ))}
-            <button
-              className="btn btn--primary dash-compose-launch"
-              type="button"
-              onClick={() => {
-                setTab("compose");
-                setComposeOpen(true);
-              }}
-            >
-              <PenLine size={16} aria-hidden="true" />
-              Compose
-            </button>
           </nav>
           <div className="settings-split__content">
             {tab === "zones" ? <ZonesWorkspace /> : null}
